@@ -13,7 +13,9 @@ function nqThrottleLogin_(p){
   if(!name)nqError_('INVALID_CREDENTIALS');
   // Best-effort pilot throttle, per account plus global. Not production abuse protection.
   const key='nq52login:'+nqDigest_(name);
-  nqLock_(()=>{const cache=CacheService.getScriptCache(), n=Number(cache.get(key)||0);const global=Number(cache.get('nq52login:global')||0);if(n>=5||global>=30)nqError_('TRY_LATER');cache.put(key,String(n+1),300);cache.put('nq52login:global',String(global+1),300);});
+  // Cache-only operation: retain script lock but avoid unnecessary spreadsheet flush.
+  const lock=LockService.getScriptLock();if(!lock.tryLock(20000))nqError_('BUSY');
+  try{const cache=CacheService.getScriptCache(), n=Number(cache.get(key)||0);const global=Number(cache.get('nq52login:global')||0);if(n>=5||global>=30)nqError_('TRY_LATER');cache.put(key,String(n+1),300);cache.put('nq52login:global',String(global+1),300);}finally{lock.releaseLock();}
 }
 function doPost(e){
   try{
