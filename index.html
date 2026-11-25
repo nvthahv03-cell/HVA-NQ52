@@ -13,18 +13,31 @@
 dialog{width:min(480px,calc(100% - 28px));border:1px solid #b7cee4;border-radius:20px;padding:22px;color:#183249;box-shadow:0 24px 70px #002b6655}dialog::backdrop{background:#031c40a0}dialog h2{color:#075cad;margin:0 0 10px;font-size:20px}dialog li{margin:7px 0}dialog a{color:#075cad}dialog form{text-align:right;margin-top:18px}
 @media(max-width:720px){.hva-pro-header{margin:6px 6px 0;min-height:76px;border-radius:13px}.hva-pro-header-inner{min-height:76px;padding:8px;gap:5px}.hva-pro-brand{gap:7px}.mark{width:43px;height:43px;font-size:20px;border-radius:12px}.hva-pro-kicker{font-size:8px;letter-spacing:.04em}.hva-pro-school{font-size:20px;margin:3px 0}.hva-pro-slogan{font-size:9px}.version{font-size:9px;padding:5px}.shell{margin-top:9px;padding:0 10px 90px}.hero,.user-card,.panel{padding:13px;border-radius:14px}.hero h1{font-size:17px}.user-name{font-size:15px}.user-card .actions{margin-left:0}.nvs-chooser{padding:17px 12px;margin-top:12px}.nvs-two-gates{gap:8px}.nvs-gate{min-height:170px;padding:12px 8px}.nvs-gate strong{font-size:15px}.nvs-gate small{font-size:11px}.portal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.portal-card{padding:12px;min-height:135px}.portal-name{font-size:14px}.nav-icon{width:41px;height:41px}.nvs-premium-nav{gap:5px}.dtht-auth-box{padding:22px}}
 @media(max-width:380px){.nvs-two-gates{grid-template-columns:1fr}.portal-grid{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
-.auth-links{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 3px}.auth-links button{border:0;background:transparent;padding:6px 0;color:#075cad;font-weight:800;font-size:12px;text-decoration:underline;text-underline-offset:3px}.auth-help{font-size:12px;color:#526d83;line-height:1.6}.auth-help:empty{display:none}.dtht-auth-box .auth-links button:focus-visible{outline:3px solid #f2ad21;outline-offset:2px}.hva-school-logo{display:block;object-fit:contain;flex:none;width:84px;height:84px;background:transparent;border:0;box-shadow:none}.dtht-auth-box .hva-school-logo{width:110px;height:110px;margin:0 auto 12px}.hva-pro-brand .hva-school-logo{background:#fff;border-radius:50%;padding:3px}@media(max-width:720px){.hva-pro-brand .hva-school-logo{width:48px;height:48px}}</style></head>
+.auth-links{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 3px}.auth-links button{border:0;background:transparent;padding:6px 0;color:#075cad;font-weight:800;font-size:12px;text-decoration:underline;text-underline-offset:3px}.auth-help{font-size:12px;color:#526d83;line-height:1.6}.auth-help:empty{display:none}.dtht-auth-box .auth-links button:focus-visible{outline:3px solid #f2ad21;outline-offset:2px}.hva-school-logo{display:block;object-fit:contain;flex:none;width:84px;height:84px;background:transparent;border:0;box-shadow:none}.dtht-auth-box .hva-school-logo{width:110px;height:110px;margin:0 auto 12px}.hva-pro-brand .hva-school-logo{background:#fff;border-radius:50%;padding:3px}@media(max-width:720px){.hva-pro-brand .hva-school-logo{width:48px;height:48px}}/* Web desktop workspace and user-triggered native fullscreen. */
+.header-tools{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.fullscreen-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #b9faff;border-radius:12px;background:#024d7766;color:#fff;padding:8px 12px;font-weight:800;font-size:12px;white-space:nowrap}
+.fullscreen-btn svg{width:19px;height:19px;flex:none}
+.auth-fullscreen{display:flex;justify-content:flex-end;margin:-4px 0 8px}
+.auth-fullscreen .fullscreen-btn{color:#075cad;background:#f3f9ff;border-color:#b7cee4}
+.nvs-two-gates.single-gate{grid-template-columns:minmax(0,1fr);justify-items:center}
+.single-gate .nvs-gate-work{width:min(100%,640px)}
+@media(min-width:1100px){.shell{max-width:1500px;width:calc(100% - 48px)}}
+html:fullscreen,html:fullscreen body{background:#f5f8fb}
+html:fullscreen .shell{max-width:1700px}
+.shell{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
+@media(max-width:720px){.header-tools{gap:4px}.header-tools .fullscreen-btn{padding:7px}.header-tools .fullscreen-text{display:none}.header-tools .version{font-size:8px}.shell{width:auto;padding-bottom:calc(115px + env(safe-area-inset-bottom,0px))}}
+</style></head>
 <body>
-<section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
+<section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><div class="auth-fullscreen"><button type="button" class="fullscreen-btn" id="authFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
 <label class="dtht-auth-field">Tên đăng nhập<input id="loginUser" disabled autocomplete="username" placeholder="Tên đăng nhập kế thừa từ EDOS"></label>
 <label class="dtht-auth-field">Mật khẩu<input id="loginPass" disabled type="password" autocomplete="current-password" placeholder="Mật khẩu riêng NQ52"></label>
 <div class="auth-links"><button type="button" id="switchAccount">Đổi TK</button><button type="button" id="forgotPassword">Quên mật khẩu?</button></div><p class="auth-help" id="authHelp" role="status"></p><button class="dtht-auth-btn" id="loginBtn" disabled>ĐĂNG NHẬP</button><div class="auth-msg"><span id="backendStatus" role="status" aria-live="polite">Đang kiểm tra kết nối Backend…</span><br><span id="loginStatus" role="status">Đăng nhập chưa mở. Không nhập tài khoản thật.</span></div><div id="changePanel" hidden><p><b>Đổi mật khẩu NQ52</b></p><label class="dtht-auth-field">Mật khẩu hiện tại<input id="oldPass" type="password" autocomplete="current-password"></label><label class="dtht-auth-field">Mật khẩu mới (tối thiểu 6 ký tự, có chữ hoa và !, @ hoặc #)<input id="newPass" type="password" autocomplete="new-password"></label><label class="dtht-auth-field">Nhập lại mật khẩu mới<input id="confirmPass" type="password" autocomplete="new-password"></label><button class="dtht-auth-btn" id="changeBtn" type="button">ĐỔI MẬT KHẨU</button></div><button class="btn preview-btn" id="preview">Xem trước giao diện</button><div class="auth-footer">© 2026 HVA–NQ52 · Truy cập bằng trình duyệt, không cài app</div></div></section>
 <div id="app" hidden inert>
-<header class="hva-pro-header"><div class="hva-pro-header-inner"><div class="hva-pro-brand"><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="hva-pro-brandtext"><div class="hva-pro-kicker">TRƯỜNG THPT HÒA VANG</div><div class="hva-pro-school">HVA–NQ52</div><div class="hva-pro-slogan">Giao nhiệm vụ – Tự báo cáo – Đánh giá – Lưu trữ</div></div></div><span class="version">V1 · Xem trước</span></div></header>
+<header class="hva-pro-header"><div class="hva-pro-header-inner"><div class="hva-pro-brand"><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="hva-pro-brandtext"><div class="hva-pro-kicker">TRƯỜNG THPT HÒA VANG</div><div class="hva-pro-school">HVA–NQ52</div><div class="hva-pro-slogan">Giao nhiệm vụ – Tự báo cáo – Đánh giá – Lưu trữ</div></div></div><div class="header-tools"><span class="version" id="portalVersion">V1 · Xem trước</span><button type="button" class="fullscreen-btn" id="appFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div></div></header>
 <main class="shell"><section class="hero"><h1>Quản lý và đánh giá nhiệm vụ hằng tháng</h1><p>Nền tảng độc lập · Cán bộ quản lý, giáo viên và nhân viên</p></section>
 <div class="user-card"><div class="user-avatar" aria-hidden="true">◉</div><div><div class="user-name" id="currentName">Chưa đăng nhập</div><div class="muted" id="currentUnit">Xem trước giao diện, không sử dụng danh tính thật</div></div><div class="actions"><button class="btn" id="returnLogin">Đổi TK / Về đăng nhập</button></div></div>
 <div class="notice"><b>Bản phát triển:</b> <span id="backendPreviewStatus" role="status">Đang kiểm tra kết nối Backend…</span> Nghiệp vụ chỉ xem trước, chưa nhập hồ sơ hoặc minh chứng thật.</div>
-<div class="toolbar"><label>Tháng đánh giá (xem trước)<input id="month" type="month"></label><label id="roleLabel">Nhóm giao diện minh họa<select id="role"><option value="all">Tất cả</option><option value="gv">Giáo viên</option><option value="nv">Nhân viên</option><option value="tt">Tổ trưởng</option><option value="bgh">Cán bộ quản lý</option></select></label></div>
+<div class="toolbar"><label><span id="monthLabel">Tháng đánh giá (xem trước)</span><input id="month" type="month"></label><label id="roleLabel">Nhóm giao diện minh họa<select id="role"><option value="all">Tất cả</option><option value="gv">Giáo viên</option><option value="nv">Nhân viên</option><option value="tt">Tổ trưởng</option><option value="bgh">Cán bộ quản lý</option></select></label></div>
 <section class="nvs-chooser"><div class="nvs-choose-heading"><h2>KHÔNG GIAN LÀM VIỆC NQ52</h2><p>Đăng nhập một lần · Phân quyền theo tài khoản khi vận hành</p></div><div class="nvs-two-gates">
 <button class="nvs-gate nvs-gate-admin" data-gate="admin"><span class="gate-icon" aria-hidden="true">▦</span><strong>QUẢN LÝ – ĐÁNH GIÁ</strong><small>Giao nhiệm vụ · Rà soát · Họp đánh giá · Tổng hợp</small><span class="gate-enter">Xem không gian quản lý</span></button>
 <button class="nvs-gate nvs-gate-work" data-gate="work"><span class="gate-icon" aria-hidden="true">✓</span><strong>TỰ BÁO CÁO – ĐÁNH GIÁ</strong><small>Nhiệm vụ của tôi · Minh chứng · Tự đánh giá · Kết quả</small><span class="gate-enter">Xem không gian cá nhân</span></button></div><p class="nvs-process">Giao nhiệm vụ đầu tháng → Thực hiện → Tự báo cáo → Rà soát → Họp ngày 25–26 (dự kiến) → Kết luận</p></section>
@@ -46,6 +59,38 @@ const modules=[
 const $=id=>document.getElementById(id);let gate='all';
 const NQ52_API_URL='https://script.google.com/macros/s/AKfycbxETcgVnmwH2bqENL1iMr8482-BlTsKP1x0FedDscDHfR6FR5-9bFTsPaJrEiaN3yBX/exec';
 let pilotReady=false, session=null, busy=false;
+function syncFullscreen(){
+  const active=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  document.querySelectorAll('[data-fullscreen]').forEach(b=>{
+    const label=active?'Thoát toàn màn hình':'Toàn màn hình';
+    b.setAttribute('aria-label',label);b.setAttribute('aria-pressed',String(active));b.title=label;
+    b.querySelector('.fullscreen-text').textContent=label;
+    b.querySelector('path').setAttribute('d',active?'M3 8h5V3M21 8h-5V3M16 21v-5h5M8 21v-5H3':'M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5');
+  });
+}
+async function toggleFullscreen(){
+  try{
+    if(document.fullscreenElement||document.webkitFullscreenElement){
+      const exit=document.exitFullscreen||document.webkitExitFullscreen;
+      if(!exit)throw Error('UNSUPPORTED');
+      await exit.call(document);
+    }else{
+      const root=document.documentElement,request=root.requestFullscreen||root.webkitRequestFullscreen;
+      if(!request)throw Error('UNSUPPORTED');
+      await request.call(root);
+    }
+    syncFullscreen();
+  }catch(_){showFullscreenHelp();}
+}
+function showFullscreenHelp(){
+  const message='Trình duyệt chưa hỗ trợ chế độ toàn màn hình tại đây. Trên máy tính, thử nhấn F11; nhấn lại F11 để thoát.';
+  if(!$('auth').hidden)$('authHelp').textContent=message;
+  else show('Toàn màn hình','Hướng dẫn sử dụng',[message]);
+}
+document.querySelectorAll('[data-fullscreen]').forEach(b=>b.onclick=toggleFullscreen);
+document.addEventListener('fullscreenchange',syncFullscreen);
+document.addEventListener('webkitfullscreenchange',syncFullscreen);
+syncFullscreen();
 function setBackendStatus(message){$('backendStatus').textContent=message;$('backendPreviewStatus').textContent=message;}
 async function checkBackend(){
   const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),15000);
@@ -76,7 +121,12 @@ function clearLogin(){ $('loginUser').value=''; $('loginPass').value=''; $('oldP
 function enterPortal(){
   const u=session?.user, role=u?(u.roles.includes('BGH')?'bgh':u.roles.some(r=>['TTCM','TTVP'].includes(r))?'tt':u.group==='NV'?'nv':'gv'):'all';
   gate='all';$('role').value=role;$('roleLabel').hidden=!!u;$('role').disabled=!!u;
-  document.querySelector('[data-gate="admin"]').hidden=!!u&&!['bgh','tt'].includes(role);
+  const adminHidden=!!u&&!['bgh','tt'].includes(role);
+  document.querySelector('[data-gate="admin"]').hidden=adminHidden;
+  document.querySelector('.nvs-two-gates').classList.toggle('single-gate',adminHidden);
+  $('portalVersion').textContent=u?'V1 · Thử nghiệm':'V1 · Xem trước';
+  $('monthLabel').textContent=u?'Tháng đánh giá':'Tháng đánh giá (xem trước)';
+  $('returnLogin').textContent=u?'Đăng xuất':'Đổi TK / Về đăng nhập';
   $('currentName').textContent=u?u.name:'Chưa đăng nhập';$('currentUnit').textContent=u?u.unit+' · Đăng nhập thử nghiệm':'Xem trước giao diện, không sử dụng danh tính thật';
   $('auth').hidden=true;$('app').hidden=false;$('app').inert=false;render();$('returnLogin').focus();
 }
