@@ -1,12 +1,13 @@
 /**
  * HVA-NQ52 | 00_CORE.gs | Apps Script V8
  * Independent store and authentication. No EDOS endpoints.
- * Set Script Properties NQ52_SHEET_ID, NQ52_FIREBASE_KEY before setupNQ52().
+ * Set Script Properties NQ52_SHEET_ID; local password store initialized by pilot provisioning. No Firebase before setupNQ52().
  */
 const NQ = Object.freeze({
   TZ:'Asia/Ho_Chi_Minh', SESSION_MS:8*60*60*1000,
   TABLES:{
     NQ52_USERS:['id','username','email','firebaseUid','name','unit','group','roles','active','mustChange'],
+    NQ52_CREDENTIALS:['id','salt','hash','rounds','version','updatedAt'],
     NQ52_SESSIONS:['id','userId','expiresAt','revoked'],
     NQ52_TASKS:['id','month','unit','userId','state','data','createdAt','updatedAt'],
     NQ52_REPORTS:['id','month','unit','userId','state','data','createdAt','updatedAt'],
@@ -63,12 +64,27 @@ function nqActive_(u){return u&&nqBool_(u.active);}
 function nqUser_(id){return nqRows_('NQ52_USERS').find(x=>String(x.id)===String(id));}
 function nqPublic_(u){return {id:String(u.id),username:String(u.username),name:String(u.name),unit:String(u.unit),group:String(u.group),roles:nqRoles_(u),mustChange:nqBool_(u.mustChange)};}
 function nqAudit_(actor,action,target,detail){nqWrite_('NQ52_AUDIT',{id:nqId_(),at:nqNow_(),actor:String(actor),action,target:String(target||''),detail:JSON.stringify(detail||{})});}
-function nqFirebase_(operation,payload){
-  const url='https://identitytoolkit.googleapis.com/v1/accounts:'+operation+'?key='+encodeURIComponent(nqProp_('NQ52_FIREBASE_KEY'));
-  const res=UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',payload:JSON.stringify(payload),muteHttpExceptions:true});
-  if(res.getResponseCode()!==200)nqError_(operation==='signInWithPassword'?'INVALID_CREDENTIALS':'PASSWORD_CHANGE_FAILED');
-  return JSON.parse(res.getContentText());
+// Local credentials, separate from EDOS. Pilot rounds match EDOS; benchmark before production.
+const NQ52_PWD_ROUNDS=12000;
+function nqPwdPepper_(){const v=nqProp_('NQ52_AUTH_PEPPER');if(v.length<32)nqError_('CONFIG_REQUIRED');return v;}
+function nqPwdHash_(password,salt,rounds){
+  if(!Number.isInteger(rounds)||rounds<NQ52_PWD_ROUNDS||rounds>600000)nqError_('CONFIG_REQUIRED');
+  const key=Utilities.newBlob(nqPwdPepper_()+'\u0000'+password).getBytes();
+  let block=Utilities.computeHmacSha256Signature(Utilities.newBlob(salt).getBytes().concat([0,0,0,1]),key);
+  const acc=block.map(b=>b&255);
+  for(let i=1;i<rounds;i++){block=Utilities.computeHmacSha256Signature(block,key);for(let j=0;j<acc.length;j++)acc[j]^=block[j]&255;}
+  return acc.map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+function nqPwdRecord_(id){
+  const matches=nqRows_('NQ52_CREDENTIALS').filter(x=>String(x.id)===String(id));
+  if(matches.length>1)nqError_('CONFIG_REQUIRED');return matches[0]||null;
+}
+function nqPwdEqual_(a,b){if(typeof a!=='string'||typeof b!=='string')return false;let d=a.length^b.length;for(let i=0;i<Math.max(a.length,b.length);i++)d|=(a.charCodeAt(i)||0)^(b.charCodeAt(i)||0);return d===0;}
+function nqPwdCheck_(record,password){
+  return !!record&&/^[0-9a-f]{64}$/.test(String(record.hash))&&!!record.salt&&nqPwdEqual_(nqPwdHash_(password,String(record.salt),Number(record.rounds)),String(record.hash));
+}
+function nqPwdPolicy_(p){return typeof p==='string'&&p.length>=16&&p.length<=128&&/[A-Z]/.test(p)&&/[a-z]/.test(p)&&/[0-9]/.test(p)&&/[^A-Za-z0-9]/.test(p);}
+function nqPwdNew_(id,password,old){const salt=nqId_()+nqId_();return {...(old||{}),id,salt,hash:nqPwdHash_(password,salt,NQ52_PWD_ROUNDS),rounds:NQ52_PWD_ROUNDS,version:nqId_(),updatedAt:nqNow_()};}
 function nqFindSession_(token){
   if(typeof token!=='string'||token.length!==72)nqError_('AUTH_REQUIRED');
   const s=nqRows_('NQ52_SESSIONS').find(x=>x.id===nqDigest_(token));
@@ -83,26 +99,33 @@ function nqAuth_(token,allowChange){
 }
 function nqLogin_(p){
   const username=nqText_(p.username,100,true).toLowerCase(),password=nqTextRawPassword_(p.password);
+  if(nqProp_('NQ52_AUTH_MODE')!=='LOCAL_PILOT')nqError_('CONFIG_REQUIRED');
   const matches=nqRows_('NQ52_USERS').filter(x=>String(x.username).trim().toLowerCase()===username);
   const u=matches.length===1?matches[0]:null;
-  if(!nqActive_(u)||!u.firebaseUid||!u.email)nqError_('INVALID_CREDENTIALS');
-  const f=nqFirebase_('signInWithPassword',{email:String(u.email),password,returnSecureToken:true});
-  if(String(f.localId)!==String(u.firebaseUid))nqError_('INVALID_CREDENTIALS');
-  return nqLock_(()=>{const fresh=nqUser_(u.id);if(!nqActive_(fresh)||String(fresh.firebaseUid)!==String(f.localId)||String(fresh.email)!==String(u.email))nqError_('INVALID_CREDENTIALS');
-    const token=nqId_()+nqId_();nqWrite_('NQ52_SESSIONS',{id:nqDigest_(token),userId:fresh.id,expiresAt:Date.now()+NQ.SESSION_MS,revoked:false});nqAudit_(fresh.id,'LOGIN',fresh.id,{});return {token,user:nqPublic_(fresh)};
+  if(!nqActive_(u))nqError_('INVALID_CREDENTIALS');
+  const cred=nqPwdRecord_(u.id);
+  if(!nqPwdCheck_(cred,password))nqError_('INVALID_CREDENTIALS');
+  return nqLock_(()=>{const fresh=nqUser_(u.id),current=nqPwdRecord_(u.id);
+    if(!nqActive_(fresh)||!current||String(current.version)!==String(cred.version))nqError_('INVALID_CREDENTIALS');
+    const token=nqId_()+nqId_();nqWrite_('NQ52_SESSIONS',{id:nqDigest_(token),userId:fresh.id,expiresAt:Date.now()+NQ.SESSION_MS,revoked:false});
+    nqAudit_(fresh.id,'LOGIN',fresh.id,{});return {token,user:nqPublic_(fresh)};
   });
 }
 function nqTextRawPassword_(v){if(typeof v!=='string'||!v.length||v.length>256)nqError_('INVALID_CREDENTIALS');return v;}
 function nqRevokeAll_(id){nqRows_('NQ52_SESSIONS').filter(s=>String(s.userId)===String(id)&&!nqBool_(s.revoked)).forEach(s=>{s.revoked=true;nqWrite_('NQ52_SESSIONS',s);});}
 function nqChangePassword_(p){
-  const old=nqTextRawPassword_(p.oldPassword), next=nqTextRawPassword_(p.newPassword);
-  if(next.length<12||next===old)nqError_('PASSWORD_POLICY');
+  const old=nqTextRawPassword_(p.oldPassword),next=nqTextRawPassword_(p.newPassword);
+  if(!nqPwdPolicy_(next)||next===old)nqError_('PASSWORD_POLICY');
+  // Verify and derive outside lock; check credential version again under lock.
+  const user=nqAuth_(p.token,true),cred=nqPwdRecord_(user.id);
+  if(!nqPwdCheck_(cred,old))nqError_('INVALID_CREDENTIALS');
+  const replacement=nqPwdNew_(user.id,next,cred);
   return nqLock_(()=>{
-    const u=nqAuth_(p.token,true),f=nqFirebase_('signInWithPassword',{email:String(u.email),password:old,returnSecureToken:true});
-    if(String(f.localId)!==String(u.firebaseUid))nqError_('INVALID_CREDENTIALS');
-    nqFirebase_('update',{idToken:f.idToken,password:next,returnSecureToken:true});
-    nqRevokeAll_(u.id);u.mustChange=false;nqWrite_('NQ52_USERS',u);nqAudit_(u.id,'PASSWORD_CHANGED',u.id,{});
-    return {loginAgain:true};
+    const u=nqAuth_(p.token,true),current=nqPwdRecord_(u.id);
+    if(!current||current.version!==cred.version)nqError_('AUTH_REQUIRED');
+    // Revoke before committing new credential; interrupted writes fail closed.
+    nqRevokeAll_(u.id);nqWrite_('NQ52_CREDENTIALS',replacement);u.mustChange=false;nqWrite_('NQ52_USERS',u);
+    nqAudit_(u.id,'PASSWORD_CHANGED',u.id,{});return {loginAgain:true};
   });
 }
 function nqLogout_(p){return nqLock_(()=>{const s=nqFindSession_(p.token);s.revoked=true;nqWrite_('NQ52_SESSIONS',s);return {loggedOut:true};});}
