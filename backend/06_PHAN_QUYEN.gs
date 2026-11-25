@@ -1,6 +1,6 @@
 /**
- * HVA-NQ52 | 06_PHAN_QUYEN.gs | 0.1
- * Read-only proposal. No permission grants or account activation.
+ * HVA-NQ52 | 06_PHAN_QUYEN.gs | 0.2
+ * Preview plus explicit approval-bound initial role assignment. No account activation.
  * Keep source software role independent of position and approved NQ52 roles.
  * Editor only; do not expose via Router.
  */
@@ -46,7 +46,7 @@ function nq52RolePlan_(){
       issues.push({sourceRow:p.sourceRow,code:'ACCOUNT_DIRECTORY_MISMATCH'});return;
     }
     const c=nq52RoleCandidate_(p);
-    entries.push({sourceRow:p.sourceRow,group:p.group,unit:p.unit,position:p.position,
+    entries.push({id:String(u.id),sourceRow:p.sourceRow,group:p.group,unit:p.unit,position:p.position,
       proposedRoles:c.roles,currentRoles:nqRoles_(u),review:c.pending,active:nqActive_(u)});
   });
   users.forEach(u=>{if(!matched.has(String(u.id)))issues.push({code:'UNMATCHED_OR_INELIGIBLE_ACCOUNT_REVIEW'});});
@@ -67,7 +67,56 @@ function previewNQ52Permissions(){
   const result={ok:!plan.issues.length,stage:'PERMISSION_PREVIEW_ONLY',
     accountsMatched:plan.entries.length,activeAccounts:active,
     proposedRoleCounts:counts,personalOnly,proposals,review,issues:plan.issues,
-    permissionsGranted:0,writes:0,productionReady:false,
+    approvalDigest:nq52PermissionDigest_(plan),permissionsGranted:0,writes:0,productionReady:false,
     notes:'Proposal only. BGH/TTCM/DECIDER are existing backend scopes, not legal authority. CBQL evaluation, TTVP and TPCM delegation need separate workflow. HISTORY_ADMIN not inferred.'};
   console.log(JSON.stringify(result,null,2));return result;
+}
+
+/** Fingerprint binds approval to exact accounts, units, positions, current roles and proposals. */
+function nq52PermissionDigest_(plan){
+  const rows=plan.entries.map(e=>[e.id,e.sourceRow,e.group,e.unit,e.position,
+    e.currentRoles.slice().sort(),e.proposedRoles.slice().sort(),e.review.slice().sort(),e.active]);
+  rows.sort((a,b)=>a[0].localeCompare(b[0]));
+  return nqDigest_(JSON.stringify({rows,issues:plan.issues}));
+}
+/**
+ * Initial role assignment only, before activation.
+ * Admin must review preview and enter its approvalDigest as NQ52_PERMISSION_APPROVAL.
+ * No automatic TPCM, TTVP, HISTORY_ADMIN grants. No changes to existing roles.
+ */
+function applyNQ52InitialPermissions(){
+  return nqLock_(function(){
+    const props=PropertiesService.getScriptProperties();
+    const plan=nq52RolePlan_();
+    if(plan.issues.length||!plan.entries.length)throw new Error('PERMISSION_PLAN_HAS_ISSUES');
+    if(plan.entries.some(e=>e.active))throw new Error('INITIAL_ASSIGNMENT_REQUIRES_INACTIVE_ACCOUNTS');
+    const digest=nq52PermissionDigest_(plan);
+    if(props.getProperty('NQ52_PERMISSION_APPROVAL')!==digest)throw new Error('PERMISSION_APPROVAL_REQUIRED_OR_STALE');
+    const byId=new Map(nqRows_('NQ52_USERS').map(u=>[String(u.id),u]));
+    const grants=[];
+    plan.entries.forEach(e=>{
+      const current=e.currentRoles.slice().sort().join(','),next=e.proposedRoles.slice().sort().join(',');
+      if(current&&current!==next)throw new Error('EXISTING_ROLES_REQUIRE_MANUAL_REVIEW');
+      if(!current&&next){
+        if(e.review.length)throw new Error('PROPOSED_ROLE_REQUIRES_REVIEW');
+        const u=byId.get(e.id);
+        if(!u||nqActive_(u)||nqRoles_(u).length)throw new Error('ACCOUNT_STATE_CHANGED');
+        grants.push({u,roles:next});
+      }
+    });
+    // Consume approval before writes: rerun preview and reapprove after interrupted execution.
+    props.deleteProperty('NQ52_PERMISSION_APPROVAL');
+    let assigned=0;
+    grants.forEach(g=>{
+      g.u.roles=g.roles;
+      nqWrite_('NQ52_USERS',g.u);
+      nqRevokeAll_(g.u.id);
+      nqAudit_('ADMIN_EDITOR','INITIAL_ROLES_ASSIGNED',g.u.id,{roles:g.roles,digest});
+      assigned++;
+    });
+    const result={ok:true,stage:'INITIAL_PERMISSIONS_ASSIGNED',accountsUpdated:assigned,
+      accountsActivated:0,remainingScopes:['TPCM','TTVP','HISTORY_ADMIN','CBQL_EVALUATION'],
+      productionReady:false};
+    console.log(JSON.stringify(result,null,2));return result;
+  });
 }
