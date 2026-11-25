@@ -1,12 +1,28 @@
 /**
  * HVA-NQ52 | 03_SETUP.gs
  * Khoi tao co so du lieu rieng. Chay initializeNQ52() trong Apps Script.
- * Phu thuoc 00_CORE.gs (NQ.TABLES, setupNQ52, nqLock_).
+ * Phu thuoc 00_CORE.gs va 04_NHAN_SU.gs.
+ * Script Properties: NQ52_ROOT_FOLDER_ID, NQ52_PERSONNEL_SOURCE_ID.
+ * Khong ghi ID Drive hoac thong tin nhan su vao repository cong khai.
  * Khong ket noi EDOS, khong tao tai khoan hoac du lieu danh gia gia.
  */
 function initializeNQ52() {
   return nqLock_(function () {
     const props = PropertiesService.getScriptProperties();
+    const root = nq52ProjectRoot_(props);
+    const sourceId = String(props.getProperty('NQ52_PERSONNEL_SOURCE_ID') || '').trim();
+    if (!sourceId) throw new Error('CHUA_CAU_HINH: NQ52_PERSONNEL_SOURCE_ID');
+    const sourceFile = DriveApp.getFileById(sourceId);
+    nq52Restricted_(sourceFile, 'NGUON_NHAN_SU');
+    if (!nq52WithinProject_(sourceFile, root)) throw new Error('NGUON_NHAN_SU_KHONG_NAM_TRONG_THU_MUC_NQ52');
+    if (typeof nq52ReadPersonnel_ !== 'function') throw new Error('CAN_CAP_NHAT_04_NHAN_SU.gs');
+    const personnel = nq52ReadPersonnel_();
+    const personnelPreview = nq52PersonnelStats_(personnel);
+    if (!personnel.people.length || personnel.issues.some(function (i) { return i.blocking; })) {
+      console.log(JSON.stringify(personnelPreview, null, 2));
+      throw new Error('DUNG_KHOI_TAO: KIEM_TRA_NHAN_SU_TRUOC');
+    }
+    const folders = nq52ProjectFolders_(root);
     let id = props.getProperty('NQ52_SHEET_ID');
     let book;
     let created = false;
@@ -15,7 +31,11 @@ function initializeNQ52() {
       // Neu ID da co ma khong mo duoc: dung, khong tao file thay the.
       book = SpreadsheetApp.openById(id);
       nq52CheckDatabaseName_(book);
+      nq52Restricted_(DriveApp.getFileById(id), 'DATABASE');
     } else {
+      if (root.getFilesByName('HVA_NQ52_DATABASE').hasNext() || folders['01_CO_SO_DU_LIEU'].getFilesByName('HVA_NQ52_DATABASE').hasNext()) {
+        throw new Error('DA_CO_DATABASE: KIEM_TRA_FILE_VA_CAU_HINH_NQ52_SHEET_ID, KHONG_TAO_TRUNG');
+      }
       book = SpreadsheetApp.create('HVA_NQ52_DATABASE');
       id = book.getId();
       // Luu ID ngay de co the chay lai khi khoi tao bi gian doan.
@@ -23,6 +43,10 @@ function initializeNQ52() {
       created = true;
     }
 
+    // Chi di chuyen DATABASE duoc cau hinh; khong di chuyen nguon nhan su.
+    const dbFile = DriveApp.getFileById(id);
+    const dbFolder = folders['01_CO_SO_DU_LIEU'];
+    if (!nq52HasParent_(dbFile, dbFolder.getId())) dbFile.moveTo(dbFolder);
     book.setSpreadsheetTimeZone(NQ.TZ);
     book.setSpreadsheetLocale('vi_VN');
 
@@ -54,6 +78,10 @@ function initializeNQ52() {
 
     const result = nq52DatabaseStatus_(book);
     result.created = created;
+    result.projectFolders = Object.keys(folders);
+    result.databaseInProjectFolder = nq52HasParent_(dbFile, dbFolder.getId());
+    result.personnelPreview = personnelPreview;
+    result.personnelSynced = false;
     console.log(JSON.stringify(result, null, 2));
     console.log('Mo co so du lieu: ' + book.getUrl());
     return result;
@@ -154,5 +182,62 @@ function checkNQ52Database() {
   nq52CheckDatabaseName_(book);
   const result = nq52DatabaseStatus_(book);
   console.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+/** Thu muc du an: chi chap nhan che do chia se han che. */
+function nq52ProjectRoot_(props) {
+  const id = String(props.getProperty('NQ52_ROOT_FOLDER_ID') || '').trim();
+  if (!id) throw new Error('CHUA_CAU_HINH: NQ52_ROOT_FOLDER_ID');
+  const folder = DriveApp.getFolderById(id);
+  if (!/^HVA[-_]NQ52$/i.test(folder.getName())) throw new Error('KIEM_TRA_TEN_THU_MUC_GOC_HVA-NQ52');
+  nq52Restricted_(folder, 'THU_MUC_GOC');
+  return folder;
+}
+function nq52Restricted_(item, label) {
+  if (item.getSharingAccess() !== DriveApp.Access.PRIVATE) {
+    throw new Error('DUNG_KHOI_TAO: ' + label + ' PHAI_CHIA_SE_HAN_CHE');
+  }
+}
+function nq52HasParent_(file, folderId) {
+  const parents = file.getParents();
+  while (parents.hasNext()) if (parents.next().getId() === folderId) return true;
+  return false;
+}
+function nq52WithinProject_(file, root) {
+  if (nq52HasParent_(file, root.getId())) return true;
+  const folders = root.getFoldersByName('00_NHAN_SU');
+  while (folders.hasNext()) {
+    const folder = folders.next();
+    if (nq52HasParent_(file, folder.getId())) {
+      nq52Restricted_(folder, '00_NHAN_SU');
+      return true;
+    }
+  }
+  return false;
+}
+function nq52ProjectFolders_(root) {
+  const names = [
+    '00_NHAN_SU','01_CO_SO_DU_LIEU','02_BACKEND','03_VAN_BAN_PHAP_LY',
+    '04_DU_LIEU_LICH_SU','05_KET_QUA_DANH_GIA','06_MINH_CHUNG','07_HO_SO_SANG_KIEN'
+  ];
+  const result = {};
+  // Kiem tra trung ten va chia se truoc khi tao cac thu muc con.
+  names.forEach(function (name) {
+    const matches = root.getFoldersByName(name);
+    if (matches.hasNext()) {
+      const folder = matches.next();
+      if (matches.hasNext()) throw new Error('TRUNG_THU_MUC: ' + name);
+      nq52Restricted_(folder, name);
+      result[name] = folder;
+    }
+  });
+  names.forEach(function (name) {
+    if (!result[name]) {
+      const folder = root.createFolder(name);
+      nq52Restricted_(folder, name);
+      result[name] = folder;
+    }
+  });
   return result;
 }
