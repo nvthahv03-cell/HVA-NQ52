@@ -9,7 +9,8 @@ function nqActorTarget_(u,targetId){
 function nqCanManageTarget_(u,t){
   if(String(u.id)===String(t.id))return false;
   if(String(t.group)==='CBQL')return false; // authority for CBQL not configured
-  return nqHas_(u,'BGH')||(nqHas_(u,'TTCM')&&String(t.group)==='GV'&&String(u.unit)!==''&&String(u.unit)===String(t.unit));
+  return nqHas_(u,'BGH')||(nqHas_(u,'TTCM')&&String(t.group)==='GV'&&String(u.unit)!==''&&String(u.unit)===String(t.unit))||
+    (nqHas_(u,'TTVP')&&String(u.group)==='NV'&&String(t.group)==='NV'&&String(u.unit)==='Văn phòng'&&String(t.unit)===String(u.unit));
 }
 function nqCanReview_(u,r){
   const t=nqUser_(r.userId);
@@ -25,7 +26,7 @@ function nqDate_(s,month){
   const d=new Date(s+'T00:00:00Z');if(!Number.isFinite(d.getTime())||d.toISOString().slice(0,10)!==s)nqError_('INVALID_DATE');return s;
 }
 function nqListPeople_(u){
-  if(!nqHas_(u,'TTCM')&&!nqHas_(u,'BGH'))nqError_('FORBIDDEN');
+  if(!nqHas_(u,'TTCM')&&!nqHas_(u,'BGH')&&!nqHas_(u,'TTVP'))nqError_('FORBIDDEN');
   return nqRows_('NQ52_USERS').filter(t=>nqActive_(t)&&nqCanManageTarget_(u,t)).map(t=>({id:String(t.id),name:String(t.name),unit:String(t.unit),group:String(t.group)}));
 }
 function nqListRecords_(u,p,table){
@@ -82,7 +83,7 @@ function nqReview_(u,p){
   const out=nqUpdateRecord_('NQ52_REPORTS',r,d,'REVIEWED');nqAudit_(u.id,'REPORT_REVIEWED',r.id,{});return out;
 }
 function nqListMeetings_(u,p){
-  if(!nqHas_(u,'BGH')&&!nqHas_(u,'TTCM')&&!nqHas_(u,'DECIDER'))nqError_('FORBIDDEN');
+  if(!nqHas_(u,'BGH')&&!nqHas_(u,'TTCM')&&!nqHas_(u,'DECIDER')&&!nqHas_(u,'TTVP'))nqError_('FORBIDDEN');
   const month=nqMonth_(p.month);
   return nqRows_('NQ52_MEETINGS').filter(r=>String(r.month)===month&&(nqOwned_(u,r)||nqHas_(u,'BGH')||nqHas_(u,'DECIDER')||nqJSON_(r.data).participants.includes(String(u.id)))).map(nqPublicRecord_);
 }
@@ -102,7 +103,7 @@ function nqImportHistory_(u,p){
   const r=nqNewRecord_(month,t,data,'IMPORTED_UNVERIFIED');nqWrite_('NQ52_HISTORY',r);nqAudit_(u.id,'HISTORY_IMPORTED',r.id,{});return nqPublicRecord_(r);
 }
 function nqSummary_(u,p){
-  if(!nqHas_(u,'BGH')&&!nqHas_(u,'TTCM')&&!nqHas_(u,'DECIDER'))nqError_('FORBIDDEN');
+  if(!nqHas_(u,'BGH')&&!nqHas_(u,'TTCM')&&!nqHas_(u,'DECIDER')&&!nqHas_(u,'TTVP'))nqError_('FORBIDDEN');
   const month=nqMonth_(p.month), people=nqRows_('NQ52_USERS').filter(t=>nqActive_(t)&&(nqCanManageTarget_(u,t)||nqHas_(u,'DECIDER')&&String(t.group)!=='CBQL'&&String(t.id)!==String(u.id)));
   const reports=nqRows_('NQ52_REPORTS').filter(r=>String(r.month)===month), buckets={};
   people.forEach(t=>{const key=String(t.group)+'|'+String(t.unit);const b=buckets[key]||(buckets[key]={group:String(t.group),unit:String(t.unit),active:0,draft:0,submitted:0,reviewed:0,proposed:{HTXSNV:0,HTTNV:0,HTNV:0,KHTNV:0}});b.active++;const r=reports.find(x=>String(x.userId)===String(t.id));if(!r)return;if(r.state==='DRAFT')b.draft++;if(r.state==='SUBMITTED'||r.state==='REVIEWED')b.submitted++;if(r.state==='REVIEWED'){b.reviewed++;const c=nqJSON_(r.data).review?.proposedClass;if(c&&Object.hasOwn(b.proposed,c))b.proposed[c]++;}});
