@@ -106,6 +106,99 @@ html:fullscreen .shell{max-width:1700px}
 @media(max-width:850px){#app .workbench{grid-template-columns:1fr}#app .workbench-main{padding:16px;min-height:280px}#app .hero h1{font-size:19px}.context-row{padding:10px}#app .user-card{width:100%}#app .header-nav button{font-size:12px;gap:4px;padding:6px}#app .header-nav svg{width:16px;height:16px}#app .shell{padding:12px 10px 24px}}
 #app .nq-table-wrap{overflow:auto;margin:10px 0}#app .nq-table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}#app .nq-table th,#app .nq-table td{padding:9px;border-bottom:1px solid #e2e8f0;vertical-align:top;overflow-wrap:anywhere}#app .nq-table th{background:#f4f7fb;color:#334c65;white-space:nowrap}#app .nq-check{display:grid;grid-template-columns:minmax(110px,150px) 1fr;gap:8px;padding:9px;border-bottom:1px solid #e2e8f0;font-size:13px}#app .nq-check.warn strong{color:#935d18}#app .nq-check.ok strong{color:#285c49}#app .nq-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:7px;max-height:240px;overflow:auto;padding:8px;border:1px solid #dbe2ea;border-radius:7px}#app .nq-roster label{display:flex;align-items:center;gap:7px;font-weight:500}#app .nq-roster input{width:auto}#app .workspace-form input[type=date]{width:100%;padding:8px;border:1px solid #dbe2ea;border-radius:6px}
 #app .nq-original-eval{min-width:0;width:100%}
+
+/* NQ52 web design system — shell only, original forms and API unchanged. */
+:root{--nq-navy:#173c60;--nq-blue:#185d93;--nq-bg:#f3f6f9;--nq-line:#dce4ed;--nq-text:#20364a;--nq-muted:#617387}
+body{background:var(--nq-bg);color:var(--nq-text);font-family:Inter,"Segoe UI",Arial,sans-serif}
+[hidden]{display:none!important}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #2876bc;outline-offset:3px}
+/* Login: plain, calm, compact; no decorative gradient or patterns. */
+#auth.dtht-auth{background:#edf2f7;align-items:safe center;padding:24px 16px;isolation:isolate}
+#auth.dtht-auth::before{display:none}
+#auth .dtht-auth-box{width:min(440px,100%);padding:23px 32px 25px;border:1px solid #d5dfe9;border-top:4px solid var(--nq-navy);border-radius:14px;background:white;box-shadow:0 12px 36px #183c6010}
+#auth .auth-fullscreen{margin:0 0 6px}
+#auth .auth-fullscreen .fullscreen-btn{background:white;color:var(--nq-muted);border:1px solid var(--nq-line);padding:6px 9px;font-size:11px;border-radius:6px;font-weight:600}
+#auth .auth-fullscreen svg{width:15px;height:15px}
+#auth .hva-school-logo{width:82px;height:82px;margin:4px auto 9px}
+#auth .dtht-auth-title{font-size:30px;font-weight:750;letter-spacing:-.025em;color:var(--nq-navy)}
+#auth .dtht-auth-sub{font-size:12px;line-height:1.55;margin:8px 0 22px;color:var(--nq-muted)}
+#auth .dtht-auth-sub b{color:var(--nq-navy);font-weight:700;font-size:12px;letter-spacing:.035em}
+#auth .dtht-auth-field{margin:12px 0;gap:5px;font-size:13px;font-weight:600;color:var(--nq-text)}
+#auth .dtht-auth-field input{height:44px;border-radius:7px;background:#fff;border:1px solid #cbd7e3;font-size:14px;font-weight:400;padding:10px 12px}
+#auth .dtht-auth-field input::placeholder{color:#8290a0;font-weight:400}
+#auth .dtht-auth-field input:disabled{background:#f4f6f8}
+#auth .auth-links{margin:8px 0 5px}
+#auth .auth-links button{font-size:12px;font-weight:600;color:var(--nq-blue);text-decoration:none}
+#auth .auth-links button:hover{text-decoration:underline}
+#auth .dtht-auth-btn{height:44px;border-radius:7px;background:var(--nq-blue);font-size:14px;font-weight:700;margin-top:4px}
+#auth .dtht-auth-btn:hover:not(:disabled){background:#134d7b}
+#auth .dtht-auth-btn:disabled{opacity:.55}
+#auth .auth-msg{font-size:11px;line-height:1.55;background:#f6f8fb;color:#536779;border:1px solid var(--nq-line);border-radius:7px;padding:9px 12px;margin-top:12px}
+#auth .preview-btn{height:38px;border-radius:7px;font-size:12px;font-weight:600;color:var(--nq-blue);border-color:var(--nq-line);margin-top:10px}
+#auth .auth-footer{font-size:10px;color:#738396;margin-top:16px;line-height:1.5}
+/* Workspace: navy header, aligned toolbar, quiet navigation and generous content. */
+#app{background:var(--nq-bg);color:var(--nq-text)}
+#app .hva-pro-header{position:sticky;top:0;z-index:30;background:var(--nq-navy);min-height:66px;box-shadow:none}
+#app .hva-pro-header-inner{min-height:66px;padding:9px 24px;gap:20px;max-width:1900px}
+#app .hva-pro-brand .hva-school-logo{width:44px;height:44px}
+#app .hva-pro-kicker{font-size:10px;letter-spacing:.045em;color:#dce6f1}
+#app .hva-pro-school{font-size:23px;letter-spacing:-.02em;font-weight:750}
+#app .header-nav{max-width:610px;gap:7px}
+#app .header-nav button{min-height:40px;background:transparent;border:1px solid #ffffff35;border-radius:6px;font-size:13px;font-weight:600;box-shadow:none}
+#app .header-nav button[aria-current="page"]{background:#fff;color:var(--nq-navy)}
+#app .header-nav button:hover:not([aria-current="page"]){background:#ffffff14}
+#app .header-tools .fullscreen-btn,#app .version{font-size:11px;font-weight:600;padding:7px 9px}
+#app .shell{width:100%;max-width:1900px;padding:18px 24px 30px;margin:auto}
+#app .page-context{gap:14px;margin:0 0 12px}
+#app .hero h1{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--nq-navy)}
+#app .hero p{font-size:12px;margin-top:3px;color:var(--nq-muted)}
+#app .user-card{gap:9px;padding:9px 12px;border-color:var(--nq-line);border-radius:8px}
+#app .user-avatar{width:34px;height:34px;background:#edf3f9;color:var(--nq-blue);font-size:16px}
+#app .user-name{font-size:14px;font-weight:700}
+#app .user-card .muted{font-size:11px}
+#app .user-card .actions .btn{font-size:12px;padding:7px 10px}
+#app .context-row{padding:9px 12px;border-radius:8px;border-color:var(--nq-line);align-items:center;gap:10px}
+#app .scope-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#app .scope-label{font-size:12px}
+#app .scope-options{gap:5px}
+#app .scope-options button{border-radius:6px;padding:7px 11px;font-size:12px;font-weight:600}
+#app .scope-options button[aria-pressed="true"]{background:#e8f1fa;color:var(--nq-blue);border-color:#b9cfe3}
+#app .toolbar{align-items:center}
+#app .toolbar label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600}
+#app .toolbar input,#app .toolbar select{min-height:34px;padding:5px 9px;font-size:13px}
+#app .notice{font-size:11px;margin:8px 0 13px;border-left:3px solid #9aaec1;background:#fafbfd;padding:7px 10px}
+#app .workbench{grid-template-columns:minmax(215px,244px) minmax(0,1fr);gap:14px;scroll-margin-top:78px}
+#app .workbench-sidebar{position:sticky;top:80px;border-radius:9px;padding:13px 10px}
+#app .workbench-sidebar .portal-section-title{font-size:11px;line-height:1.5;margin:0 6px 10px;color:var(--nq-muted)}
+#app .module-menu{gap:5px}
+#app .module-button{min-height:48px;grid-template-columns:38px minmax(0,1fr) 12px;padding:8px;gap:7px;border-color:transparent;border-radius:6px;background:#fff}
+#app .module-button .module-code{color:#57718b;font-size:10px;letter-spacing:0;font-weight:700;background:#eef2f6;padding:5px 3px;border-radius:4px;text-align:center}
+#app .module-button .module-label{font-size:13px;font-weight:600;color:inherit}
+#app .module-button .module-arrow{font-size:17px;color:#8294a7}
+#app .module-button:hover{background:#f4f7fa;border-color:#e0e8f0}
+#app .module-button[aria-current="true"]{background:#e9f1fa;color:var(--nq-blue);border-color:#c8d9eb;box-shadow:inset 3px 0 var(--nq-blue)}
+#app .module-button[aria-current="true"] .module-code{background:#d6e6f7;color:var(--nq-blue)}
+#app .workbench-main{border-radius:9px;padding:20px;min-height:480px}
+#app .workbench-head{padding-bottom:11px;margin-bottom:12px;align-items:center}
+#app .workbench-head .portal-code{font-weight:700;color:var(--nq-blue);font-size:11px}
+#app .workbench-head h2{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--nq-navy);margin:3px 0}
+#app .workbench-head .muted{font-size:12px}
+#app #refreshModule{font-size:12px;padding:7px 12px}
+#app #workspaceStatus{font-size:12px;color:#607489;margin:7px 0 10px}
+#app .workspace-record{padding:16px;border-radius:8px;border-color:var(--nq-line);margin:10px 0}
+#app .workspace-record h3{font-size:15px;color:var(--nq-navy);font-weight:700;margin-bottom:10px}
+#app .workspace-record p{line-height:1.55}
+#app .workspace-form{gap:12px}
+#app .workspace-form label{font-weight:600}
+#app .workspace-form textarea,#app .workspace-form select,#app .workspace-form input{border-radius:6px;border-color:#cbd7e3}
+#app .workspace-form textarea{min-height:72px}
+#app .btn.primary{background:var(--nq-blue)}
+#app .btn.primary:hover:not(:disabled){background:#134d7b}
+#app .nq-table th{background:#f1f5f9;color:#3d556c}
+@media(max-width:1250px){#app .hva-pro-header-inner{flex-wrap:wrap;gap:8px;padding:8px 18px}#app .header-nav{flex:1 1 100%;order:3;max-width:none}#app .workbench-sidebar{top:124px}#app .workbench{scroll-margin-top:126px}}
+@media(max-width:850px){#app .shell{padding:12px 10px 22px}#app .page-context{align-items:stretch}#app .hero h1{font-size:19px}#app .user-card{width:100%}#app .workbench{grid-template-columns:1fr;gap:10px}#app .workbench-sidebar{position:static;padding:10px}#app .workbench-main{padding:13px;min-height:280px}#app .header-nav button{font-size:11px;min-height:36px;padding:5px}#app .header-nav svg{width:15px;height:15px}#app .scope-bar{gap:6px}#app .scope-label{width:100%}#app .toolbar label{flex-wrap:wrap}#app .context-row{padding:8px}#app .workbench-head h2{font-size:19px}}
+@media(max-width:450px){#auth .dtht-auth-box{padding:20px}#app .header-tools .version{display:none}#app .hva-pro-school{font-size:20px}#app .hva-pro-header-inner{padding:8px 10px}#app .header-nav button{gap:3px}#app .header-nav svg{width:13px;height:13px}}
+
 </style></head>
 <body>
 <section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><div class="auth-fullscreen"><button type="button" class="fullscreen-btn" id="authFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
