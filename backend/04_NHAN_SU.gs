@@ -1,5 +1,5 @@
 /**
- * HVA-NQ52 | 04_NHAN_SU.gs | Personnel directory 0.4
+ * HVA-NQ52 | 04_NHAN_SU.gs | Personnel directory 0.5
  * Ke thua quy tac danh muc to, unitKey, chong trung cua HVA_Personnel.js.
  * Doc ban sao NHAN_SU cua NQ52; KHONG goi API/session EDOS.
  * Chi chay ham quan tri trong Apps Script; khong mo qua Router.
@@ -45,7 +45,8 @@ function nq52PersonnelGroup_(position) {
     v=nq52PersonnelNorm_(v);
     if(['ht','pht','cbql','bgh','hieu truong','pho hieu truong','can bo quan ly'].includes(v))return 'CBQL';
     if(['gv','giao vien','ttcm','tpcm','to truong chuyen mon','to pho chuyen mon'].includes(v))return 'GV';
-    if(['nv','nhan vien'].includes(v))return 'NV';
+    // TTVP thuoc nhom nghiep vu NV; tham quyen va mau danh gia xac dinh rieng.
+    if(['nv','nhan vien','ttvp','to truong van phong'].includes(v))return 'NV';
     return 'UNKNOWN';
   };
   return classify(position);
@@ -109,7 +110,7 @@ function nq52EmploymentCode_(v){
 }
 function nq52PersonnelStats_(source) {
   const groups={CBQL:0,GV:0,NV:0,UNKNOWN:0},workingGroups={CBQL:0,GV:0,NV:0,UNKNOWN:0};
-  const roleCounts={TTCM:0,TPCM:0},positionCounts={TTCM:0,TPCM:0};
+  const roleCounts={TTCM:0,TPCM:0,TTVP:0},positionCounts={TTCM:0,TPCM:0,TTVP:0};
   const employmentCounts={WORKING:0,UNPAID_LEAVE:0,OTHER_REVIEW:0}, monthlyEligibilityReview=[];
   const byUnit=NQ52_PERSONNEL_UNITS.map(x=>({unitKey:x[0],unit:x[1],count:0,working:0}));
   const otherGroups={BGH:0,HoiDong:0,GVCN:0,LienTich:0,LienTichMoRong:0};
@@ -121,9 +122,11 @@ function nq52PersonnelStats_(source) {
     const pos=nq52PersonnelNorm_(p.position);
     if(pos==='ttcm'||pos==='to truong chuyen mon')positionCounts.TTCM++;
     if(pos==='tpcm'||pos==='to pho chuyen mon')positionCounts.TPCM++;
+    if(pos==='ttvp'||pos==='to truong van phong')positionCounts.TTVP++;
     const r=nq52PersonnelNorm_(p.sourceRole);
     if(r==='ttcm'||r==='to truong chuyen mon')roleCounts.TTCM++;
     if(r==='tpcm'||r==='to pho chuyen mon')roleCounts.TPCM++;
+    if(r==='ttvp'||r==='to truong van phong')roleCounts.TTVP++;
     const u=byUnit.find(x=>x.unitKey===p.unitKey);
     if(u){u.count++;if(active)u.working++;}
     if(!active)return;
