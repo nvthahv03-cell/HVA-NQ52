@@ -2,8 +2,7 @@
  * HVA-NQ52 | 05_TAI_KHOAN.gs
  * Admin editor only. Never register these functions in doPost.
  * Stage 1: prepare roster from directory, no credentials or permissions.
- * Stage 2: explicitly provision one approved account (pilot) in NQ52 Firebase.
- * Stage 3: send password setup link separately, by authorized admin.
+ * Stage 2: explicitly provision one ordinary pilot with local credentials. No Firebase.
  */
 function nq52AccountDirectory_(){
   const book=nqBook_();
@@ -80,70 +79,34 @@ function createNQ52Accounts(){
     console.log(JSON.stringify(result,null,2));return result;
   });
 }
-// Password format is NQ52@ + random UUID-derived suffix, never a staff ID.
-// UUID is used for an undisclosed bootstrap secret; users set their password via Firebase reset link.
-function nq52BootstrapPassword_(){
-  return 'NQ52@'+Utilities.getUuid().replace(/-/g,'')+'aA7';
-}
-function nq52PilotAccount_(){
-  const props=PropertiesService.getScriptProperties();
-  if(props.getProperty('NQ52_PILOT_APPROVED')!=='TRUE')throw new Error('PILOT_APPROVAL_REQUIRED');
-  const username=String(props.getProperty('NQ52_PILOT_USERNAME')||'').trim().toLowerCase();
-  const email=String(props.getProperty('NQ52_PILOT_EMAIL')||'').trim().toLowerCase();
-  if(!username||!/^\S+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error('PILOT_USERNAME_AND_CONFIRMED_EMAIL_REQUIRED');
-  const project=String(nqProp_('NQ52_FIREBASE_PROJECT_ID')).trim();
-  if(!/^[a-z][a-z0-9-]{4,29}$/.test(project))throw new Error('INVALID_FIREBASE_PROJECT');
-  nqProp_('NQ52_FIREBASE_KEY');
-  const people=nq52AccountDirectory_(), p=people.find(x=>String(x.username).trim().toLowerCase()===username);
-  if(!p||!nq52AccountEligible_(p))throw new Error('PILOT_NOT_ELIGIBLE');
-  const users=nqRows_('NQ52_USERS'), matches=users.filter(u=>String(u.username).trim().toLowerCase()===username);
-  if(matches.length!==1||String(matches[0].id)!==String(p.id))throw new Error('PILOT_ACCOUNT_NOT_PREPARED');
-  const u=matches[0];
-  if(users.some(x=>String(x.id)!==String(u.id)&&String(x.email).trim().toLowerCase()===email))throw new Error('EMAIL_ALREADY_ASSIGNED');
-  if(u.email&&String(u.email).trim().toLowerCase()!==email)throw new Error('EMAIL_CHANGE_REQUIRES_REVIEW');
-  if(nqRoles_(u).length)throw new Error('PILOT_MUST_HAVE_NO_PRIVILEGED_ROLES');
-  return {props,project,email,u};
-}
-/** Editor only, one approved pilot. Requires OAuth identitytoolkit/cloud-platform scope and IAM. */
+/** Editor only: set NQ52_PILOT_USERNAME and NQ52_PILOT_PASSWORD privately, then run.
+ * Consumes password property; no password or hash in log. One active pilot only.
+ */
 function provisionNQ52PilotAccount(){
   return nqLock_(function(){
-    const x=nq52PilotAccount_(),u=x.u;
-    if(u.firebaseUid||nqActive_(u))throw new Error('ACCOUNT_ALREADY_PROVISIONED_OR_REQUIRES_REVIEW');
-    // Reserve email locally; leave inactive if remote call fails.
-    u.email=x.email;u.active=false;u.mustChange=true;nqWrite_('NQ52_USERS',u);SpreadsheetApp.flush();
-    const url='https://identitytoolkit.googleapis.com/v1/projects/'+encodeURIComponent(x.project)+'/accounts';
-    const response=UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',
-      headers:{Authorization:'Bearer '+ScriptApp.getOAuthToken()},
-      payload:JSON.stringify({localId:String(u.id),email:x.email,password:nq52BootstrapPassword_(),emailVerified:false,disabled:false}),
-      muteHttpExceptions:true});
-    if(response.getResponseCode()!==200){
-      // Never echo response body. On uncertainty inspect Firebase console; do not overwrite accounts.
-      throw new Error('FIREBASE_CREATE_FAILED_HTTP_'+response.getResponseCode()+'_REVIEW_CONSOLE');
-    }
-    const remote=JSON.parse(response.getContentText());
-    if(String(remote.localId)!==String(u.id))throw new Error('FIREBASE_UID_MISMATCH_REVIEW_CONSOLE');
-    u.firebaseUid=String(remote.localId);
-    // Keep application access inactive until administrator confirms the pilot setup.
-    nqWrite_('NQ52_USERS',u);nqAudit_('ADMIN_EDITOR','PILOT_FIREBASE_CREATED',u.id,{});
-    const result={ok:true,stage:'PILOT_CREATED_INACTIVE',passwordsStored:0,emailsSent:0,productionReady:false};
-    console.log(JSON.stringify(result));return result;
-  });
-}
-/** Sends only one reset link, to the explicitly approved pilot email. */
-function sendNQ52PilotSetupLink(){
-  return nqLock_(function(){
-    const x=nq52PilotAccount_(),u=x.u;
-    if(!u.firebaseUid||String(u.firebaseUid)!==String(u.id)||String(u.email)!==x.email)throw new Error('PILOT_NOT_PROVISIONED');
-    if(nqActive_(u))throw new Error('PILOT_ALREADY_ACTIVE');
-    const url='https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key='+encodeURIComponent(nqProp_('NQ52_FIREBASE_KEY'));
-    const response=UrlFetchApp.fetch(url,{method:'post',contentType:'application/json',
-      payload:JSON.stringify({requestType:'PASSWORD_RESET',email:x.email}),muteHttpExceptions:true});
-    if(response.getResponseCode()!==200)throw new Error('SETUP_LINK_FAILED_HTTP_'+response.getResponseCode());
-    // Only authorize after link request accepted; the Firebase password is never stored.
-    u.active=true;u.mustChange=true;nqWrite_('NQ52_USERS',u);
-    nqAudit_('ADMIN_EDITOR','PILOT_SETUP_LINK_REQUESTED',u.id,{});
-    x.props.deleteProperty('NQ52_PILOT_APPROVED');
-    const result={ok:true,stage:'PILOT_LINK_REQUEST_ACCEPTED',accountsActivated:1,passwordsStored:0,productionReady:false};
+    const props=PropertiesService.getScriptProperties();
+    const username=String(props.getProperty('NQ52_PILOT_USERNAME')||'').trim().toLowerCase();
+    const password=props.getProperty('NQ52_PILOT_PASSWORD')||'';
+    if(!username||!nqPwdPolicy_(password))throw new Error('PILOT_USERNAME_AND_STRONG_PASSWORD_REQUIRED');
+    const people=nq52AccountDirectory_(),p=people.find(x=>String(x.username).trim().toLowerCase()===username);
+    if(!p||!nq52AccountEligible_(p))throw new Error('PILOT_NOT_ELIGIBLE');
+    const users=nqRows_('NQ52_USERS'),matches=users.filter(u=>String(u.username).trim().toLowerCase()===username);
+    if(matches.length!==1||String(matches[0].id)!==String(p.id))throw new Error('PILOT_ACCOUNT_NOT_PREPARED');
+    const u=matches[0];
+    if(nqRoles_(u).length)throw new Error('PILOT_MUST_HAVE_NO_PRIVILEGED_ROLES');
+    if(users.some(nqActive_)||u.firebaseUid)throw new Error('EXISTING_ACTIVE_ACCOUNT_REVIEW');
+    const book=nqBook_();let sh=book.getSheetByName('NQ52_CREDENTIALS');
+    if(!sh){sh=book.insertSheet('NQ52_CREDENTIALS');sh.getRange(1,1,1,NQ.TABLES.NQ52_CREDENTIALS.length).setValues([NQ.TABLES.NQ52_CREDENTIALS]);sh.setFrozenRows(1);}
+    nqCheckHeader_(sh,'NQ52_CREDENTIALS');
+    if(nqRows_('NQ52_CREDENTIALS').length)throw new Error('EXISTING_CREDENTIALS_REVIEW');
+    if(!props.getProperty('NQ52_AUTH_PEPPER'))props.setProperty('NQ52_AUTH_PEPPER',nqId_()+nqId_());
+    // Remove temporary plaintext before persisting; never print it.
+    props.deleteProperty('NQ52_PILOT_PASSWORD');
+    const start=Date.now(),cred=nqPwdNew_(u.id,password,null);
+    nqWrite_('NQ52_CREDENTIALS',cred);nqRevokeAll_(u.id);u.mustChange=true;u.active=true;nqWrite_('NQ52_USERS',u);
+    nqAudit_('ADMIN_EDITOR','LOCAL_PILOT_PROVISIONED',u.id,{});
+    SpreadsheetApp.flush();props.setProperty('NQ52_AUTH_MODE','LOCAL_PILOT');
+    const result={ok:true,stage:'LOCAL_PILOT_READY',accountsActivated:1,hashAndWriteMs:Date.now()-start,plaintextStored:false,productionReady:false};
     console.log(JSON.stringify(result));return result;
   });
 }
