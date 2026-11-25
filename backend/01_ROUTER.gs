@@ -6,14 +6,14 @@ function nqOut_(ok,data,code){
   return ContentService.createTextOutput(JSON.stringify(ok?{ok:true,data}:{ok:false,code})).setMimeType(ContentService.MimeType.JSON);
 }
 function doGet(){
-  return nqOut_(true,{service:'HVA-NQ52',version:'0.1.0',stage:'DEVELOPMENT'});
+  return nqOut_(true,{service:'HVA-NQ52',version:'0.2.0',stage:'DEVELOPMENT',authMode:PropertiesService.getScriptProperties().getProperty('NQ52_AUTH_MODE')==='LOCAL_PILOT'?'LOCAL_PILOT':'LOCKED'});
 }
 function nqThrottleLogin_(p){
   const name=typeof p.username==='string'?p.username.trim().toLowerCase().slice(0,100):'';
   if(!name)nqError_('INVALID_CREDENTIALS');
-  // Best-effort per-account throttling. Firebase also enforces its own abuse limits.
+  // Best-effort pilot throttle, per account plus global. Not production abuse protection.
   const key='nq52login:'+nqDigest_(name);
-  nqLock_(()=>{const cache=CacheService.getScriptCache(), n=Number(cache.get(key)||0);if(n>=8)nqError_('TRY_LATER');cache.put(key,String(n+1),300);});
+  nqLock_(()=>{const cache=CacheService.getScriptCache(), n=Number(cache.get(key)||0);const global=Number(cache.get('nq52login:global')||0);if(n>=5||global>=30)nqError_('TRY_LATER');cache.put(key,String(n+1),300);cache.put('nq52login:global',String(global+1),300);});
 }
 function doPost(e){
   try{
@@ -23,7 +23,7 @@ function doPost(e){
     if(!p||typeof p!=='object'||Array.isArray(p))nqError_('INVALID_REQUEST');
     const action=nqText_(p.action,50,true);
     if(action==='login'){nqThrottleLogin_(p);return nqOut_(true,nqLogin_(p));}
-    if(action==='changePassword')return nqOut_(true,nqChangePassword_(p));
+    if(action==='changePassword'){nqThrottleLogin_({username:'password:'+nqDigest_(String(p.token||''))});return nqOut_(true,nqChangePassword_(p));}
     if(action==='logout')return nqOut_(true,nqLogout_(p));
     return nqOut_(true,nqLock_(()=>{
       const u=nqAuth_(p.token,false);
