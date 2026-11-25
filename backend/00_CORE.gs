@@ -83,7 +83,7 @@ function nqPwdEqual_(a,b){if(typeof a!=='string'||typeof b!=='string')return fal
 function nqPwdCheck_(record,password){
   return !!record&&/^[0-9a-f]{64}$/.test(String(record.hash))&&!!record.salt&&nqPwdEqual_(nqPwdHash_(password,String(record.salt),Number(record.rounds)),String(record.hash));
 }
-function nqPwdPolicy_(p){return typeof p==='string'&&p.length>=16&&p.length<=128&&/[A-Z]/.test(p)&&/[a-z]/.test(p)&&/[0-9]/.test(p)&&/[^A-Za-z0-9]/.test(p);}
+function nqPwdPolicy_(p){return typeof p==='string'&&p.length>=6&&p.length<=128&&/[A-Z]/.test(p)&&/[!@#]/.test(p);}
 function nqPwdNew_(id,password,old){const salt=nqId_()+nqId_();return {...(old||{}),id,salt,hash:nqPwdHash_(password,salt,NQ52_PWD_ROUNDS),rounds:NQ52_PWD_ROUNDS,version:nqId_(),updatedAt:nqNow_()};}
 function nqFindSession_(token){
   if(typeof token!=='string'||token.length!==72)nqError_('AUTH_REQUIRED');
