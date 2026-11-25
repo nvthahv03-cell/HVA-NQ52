@@ -6,7 +6,7 @@ function nqOut_(ok,data,code){
   return ContentService.createTextOutput(JSON.stringify(ok?{ok:true,data}:{ok:false,code})).setMimeType(ContentService.MimeType.JSON);
 }
 function doGet(){
-  return nqOut_(true,{service:'HVA-NQ52',version:'0.2.0',stage:'DEVELOPMENT',authMode:PropertiesService.getScriptProperties().getProperty('NQ52_AUTH_MODE')==='LOCAL_PILOT'?'LOCAL_PILOT':'LOCKED'});
+  return nqOut_(true,{service:'HVA-NQ52',version:'0.2.0',stage:'DEVELOPMENT',assessmentDraftVersion:NQ52_QD32_DRAFT_VERSION,authMode:PropertiesService.getScriptProperties().getProperty('NQ52_AUTH_MODE')==='LOCAL_PILOT'?'LOCAL_PILOT':'LOCKED'});
 }
 function nqThrottleLogin_(p){
   const name=typeof p.username==='string'?p.username.trim().toLowerCase().slice(0,100):'';

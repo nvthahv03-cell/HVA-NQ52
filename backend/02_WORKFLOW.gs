@@ -57,10 +57,12 @@ function nqReportDraft_(u,p){
   const month=nqMonth_(p.month);let r=nqRows_('NQ52_REPORTS').find(x=>String(x.userId)===String(u.id)&&String(x.month)===month);
   if(r)nqState_(r,['DRAFT']);
   const data=r?nqJSON_(r.data):{};
-  // Free-text self-assessment only; no invented official points or formulas.
+  // Optional versioned M03 draft; separate from all reviewed or official scores.
+  if(Object.prototype.hasOwnProperty.call(p,'assessmentDraft'))data.assessmentDraft=nqAssessmentDraft_(u,p.assessmentDraft);
   data.self={strength:nqText_(p.strength,5000,true),weakness:nqText_(p.weakness,5000,true),solution:nqText_(p.solution,5000,true),proposedClass:nqClass_(p.proposedClass,false),updatedAt:nqNow_()};
   data.additionalWork=nqText_(p.additionalWork,10000,false);
   data.sourceNote=nqText_(p.sourceNote,3000,false);
+  if(JSON.stringify(data).length>45000)nqError_('REPORT_TOO_LARGE');
   if(!r){r=nqNewRecord_(month,u,data,'DRAFT');nqWrite_('NQ52_REPORTS',r);}else nqUpdateRecord_('NQ52_REPORTS',r,data,'DRAFT');
   nqAudit_(u.id,'REPORT_DRAFT',r.id,{});return nqPublicRecord_(r);
 }
