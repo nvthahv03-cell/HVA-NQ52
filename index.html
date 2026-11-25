@@ -222,6 +222,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 #auth .auth-msg,#auth .auth-footer{font-size:12px}
 @media(max-width:850px){#app .workbench{grid-template-columns:1fr}#app .header-nav button{font-size:13px;white-space:normal}#app .hero h1,#app .workbench-head h2{font-size:22px}}
 
+#app .module-button.module-no-code{grid-template-columns:minmax(0,1fr) 12px}#app .module-button.module-no-code .module-label{padding-left:4px}
 </style></head>
 <body>
 <section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><div class="auth-fullscreen"><button type="button" class="fullscreen-btn" id="authFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
@@ -308,7 +309,7 @@ function render(){
   document.querySelectorAll('[data-gate]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.gate===gate||gate==='all'&&b.dataset.gate==='work'&&document.querySelector('[data-gate="all"]').hidden)));
   const items=visibleModules();if(!items.some(m=>m[0]===selectedModule))selectedModule=items[0]?.[0]||null;
   $('catalogTitle').textContent=gate==='admin'?'QUẢN LÝ – ĐÁNH GIÁ':gate==='work'?'TỰ BÁO CÁO – ĐÁNH GIÁ':'PHÂN HỆ NGHIỆP VỤ';
-  $('modules').replaceChildren(...items.map(m=>{const b=el('button','','module-button');b.type='button';b.setAttribute('aria-current',String(m[0]===selectedModule));b.append(el('span','NQ'+m[0],'module-code'),el('span',m[1],'module-label'),el('span','›','module-arrow'));b.onclick=()=>{selectedModule=m[0];render();};return b;}));
+  $('modules').replaceChildren(...items.map(m=>{const b=el('button','','module-button');b.type='button';b.setAttribute('aria-current',String(m[0]===selectedModule));if(m[0]==='04'){b.classList.add('module-no-code');}else{b.append(el('span','NQ'+m[0],'module-code'));}b.append(el('span',m[1],'module-label'),el('span','›','module-arrow'));b.onclick=()=>{selectedModule=m[0];render();};return b;}));
   loadModule();
 }
 function workspaceNote(t){$('workspaceBody').append(el('p',t,'workspace-note'));}
@@ -414,7 +415,7 @@ function taskCard(t,ctx,editable){
 function reportCard(report,showReview=false){const d=report.data||{},card=recordCard('Báo cáo tháng '+report.month);fieldLine(card,'Trạng thái',stateLabels[report.state]||report.state);fieldLine(card,'Ưu điểm',d.self?.strength);fieldLine(card,'Hạn chế',d.self?.weakness);fieldLine(card,'Giải pháp',d.self?.solution);fieldLine(card,'Nhiệm vụ bổ sung',d.additionalWork);fieldLine(card,'Nguồn nhiệm vụ',d.sourceNote);if(showReview&&d.review){fieldLine(card,'Nhận xét rà soát',d.review.comment);fieldLine(card,'Đề xuất xếp loại (chưa kết luận)',classLabels[d.review.proposedClass]||d.review.proposedClass);fieldLine(card,'Lý do',d.review.reason);}return card;}
 async function loadModule(message=''){
   const request=++moduleRequest,id=selectedModule,m=modules.find(x=>x[0]===id),u=session?.user,token=session?.token,month=$('month').value;
-  $('workspaceCode').textContent=m?'NQ'+id:'';$('workspaceTitle').textContent=m?m[1]:'Không gian nghiệp vụ';$('workspaceDesc').textContent=m?m[2]:'';$('workspaceBody').replaceChildren();$('workspaceStatus').textContent='';$('refreshModule').hidden=!m||!token;
+  $('workspaceCode').textContent=m&&id!=='04'?'NQ'+id:'';$('workspaceCode').hidden=!m||id==='04';$('workspaceTitle').textContent=m?m[1]:'Không gian nghiệp vụ';$('workspaceDesc').textContent=m?m[2]:'';$('workspaceBody').replaceChildren();$('workspaceStatus').textContent='';$('refreshModule').hidden=!m||!token;
   if(!m){workspaceNote('Chọn nhóm nghiệp vụ để làm việc.');return;}
   if(!token){m[5].forEach(t=>workspaceNote(t));workspaceNote('Đăng nhập bằng tài khoản đã được cấp để kết nối dữ liệu.');return;}
   const current=()=>request===moduleRequest&&session?.token===token&&$('month').value===month;
