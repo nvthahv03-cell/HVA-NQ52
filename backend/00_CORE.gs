@@ -47,7 +47,7 @@ function nqCell_(v){
 }
 function nqWrite_(name,obj){
   const sh=nqSheet_(name),keys=NQ.TABLES[name], row=keys.map(k=>nqCell_(obj[k]));
-  const pos=obj._row||sh.getLastRow()+1;sh.getRange(pos,1,1,row.length).setValues([row]);return obj;
+  const pos=obj._row||sh.getLastRow()+1;const range=sh.getRange(pos,1,1,row.length);range.setNumberFormats([row.map(v=>typeof v==='string'?'@':'General')]);range.setValues([row]);return obj;
 }
 function nqLock_(fn){const lock=LockService.getScriptLock();if(!lock.tryLock(20000))nqError_('BUSY');try{const r=fn();SpreadsheetApp.flush();return r;}finally{lock.releaseLock();}}
 function nqNow_(){return new Date().toISOString();}
@@ -108,8 +108,6 @@ function nqChangePassword_(p){
 function nqLogout_(p){return nqLock_(()=>{const s=nqFindSession_(p.token);s.revoked=true;nqWrite_('NQ52_SESSIONS',s);return {loggedOut:true};});}
 function nqPublicRecord_(r){const o={...r,data:nqJSON_(r.data)};delete o._row;return o;}
 function nqOwned_(u,r){return String(r.userId)===String(u.id);}
-function nqManager_(u,r){return !nqOwned_(u,r)&&(nqHas_(u,'BGH')||(nqHas_(u,'TTCM')&&String(u.unit)===String(r.unit)&&String(r.unit)!==''&&nqUser_(r.userId)&&String(nqUser_(r.userId).group)==='GV'));}
-function nqView_(u,r){return nqOwned_(u,r)||nqManager_(u,r)||nqHas_(u,'DECIDER');}
 function nqRecord_(table,id){const r=nqRows_(table).find(x=>String(x.id)===String(id));if(!r)nqError_('NOT_FOUND');return r;}
 function nqState_(r,allowed){if(!allowed.includes(String(r.state)))nqError_('INVALID_STATE');}
 function nqNewRecord_(month,u,data,state){const at=nqNow_();return {id:nqId_(),month,unit:u.unit,userId:u.id,state,data:JSON.stringify(data),createdAt:at,updatedAt:at};}
