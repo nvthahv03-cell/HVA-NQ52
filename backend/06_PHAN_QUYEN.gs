@@ -1,5 +1,5 @@
 /**
- * HVA-NQ52 | 06_PHAN_QUYEN.gs | 0.2
+ * HVA-NQ52 | 06_PHAN_QUYEN.gs | 0.3
  * Preview plus explicit approval-bound initial role assignment. No account activation.
  * Keep source software role independent of position and approved NQ52 roles.
  * Editor only; do not expose via Router.
@@ -15,7 +15,10 @@ function nq52RoleCandidate_(p){
     if(['ttcm','to truong chuyen mon'].includes(position))roles.push('TTCM');
     if(['tpcm','to pho chuyen mon'].includes(position))pending.push('TPCM_DELEGATION_REVIEW');
   }else if(p.group==='NV'){
-    if(['ttvp','to truong van phong'].includes(position))pending.push('TTVP_SCOPE_NOT_IMPLEMENTED');
+    if(['ttvp','to truong van phong'].includes(position)){
+      if(p.unitKey==='OFFICE'&&p.unit==='Văn phòng')roles.push('TTVP');
+      else pending.push('TTVP_UNIT_REVIEW');
+    }
   }else pending.push('GROUP_REVIEW');
   const src=nq52PersonnelNorm_(p.sourceRole);
   if(['tpcm','to pho chuyen mon'].includes(src)&&!['tpcm','to pho chuyen mon'].includes(position))
@@ -53,7 +56,7 @@ function nq52RolePlan_(){
   return {entries,issues};
 }
 function previewNQ52Permissions(){
-  const plan=nq52RolePlan_(), counts={BGH:0,DECIDER:0,TTCM:0,HISTORY_ADMIN:0};
+  const plan=nq52RolePlan_(), counts={BGH:0,DECIDER:0,TTCM:0,TTVP:0,HISTORY_ADMIN:0};
   const review=[],proposals=[];
   let personalOnly=0,active=0;
   plan.entries.forEach(e=>{
@@ -68,7 +71,7 @@ function previewNQ52Permissions(){
     accountsMatched:plan.entries.length,activeAccounts:active,
     proposedRoleCounts:counts,personalOnly,proposals,review,issues:plan.issues,
     approvalDigest:nq52PermissionDigest_(plan),permissionsGranted:0,writes:0,productionReady:false,
-    notes:'Proposal only. BGH/TTCM/DECIDER are existing backend scopes, not legal authority. CBQL evaluation, TTVP and TPCM delegation need separate workflow. HISTORY_ADMIN not inferred.'};
+    notes:'Proposal only. BGH/TTCM/DECIDER are existing backend scopes, not legal authority. TTVP scope: office NV only. CBQL evaluation and TPCM delegation need separate workflow. HISTORY_ADMIN not inferred.'};
   console.log(JSON.stringify(result,null,2));return result;
 }
 
@@ -82,7 +85,7 @@ function nq52PermissionDigest_(plan){
 /**
  * Initial role assignment only, before activation.
  * Admin must review preview and enter its approvalDigest as NQ52_PERMISSION_APPROVAL.
- * No automatic TPCM, TTVP, HISTORY_ADMIN grants. No changes to existing roles.
+ * No automatic TPCM or HISTORY_ADMIN grants. TTVP is restricted to the office. No changes to existing roles.
  */
 function applyNQ52InitialPermissions(){
   return nqLock_(function(){
@@ -115,7 +118,7 @@ function applyNQ52InitialPermissions(){
       assigned++;
     });
     const result={ok:true,stage:'INITIAL_PERMISSIONS_ASSIGNED',accountsUpdated:assigned,
-      accountsActivated:0,remainingScopes:['TPCM','TTVP','HISTORY_ADMIN','CBQL_EVALUATION'],
+      accountsActivated:0,remainingScopes:['TPCM','HISTORY_ADMIN','CBQL_EVALUATION'],
       productionReady:false};
     console.log(JSON.stringify(result,null,2));return result;
   });
