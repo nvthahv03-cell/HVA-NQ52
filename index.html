@@ -252,7 +252,7 @@ const modules=[
 ];
 const $=id=>document.getElementById(id);let gate='all';
 const NQ52_API_URL='https://script.google.com/macros/s/AKfycbxETcgVnmwH2bqENL1iMr8482-BlTsKP1x0FedDscDHfR6FR5-9bFTsPaJrEiaN3yBX/exec';
-let pilotReady=false, session=null, busy=false, assessmentDraftReady=false, healthChecking=false;
+let pilotReady=false, session=null, busy=false, assessmentDraftReady=false, healthChecking=false, monthlyDraftReady=false;
 function syncFullscreen(){
   const active=!!(document.fullscreenElement||document.webkitFullscreenElement);
   document.querySelectorAll('[data-fullscreen]').forEach(b=>{
@@ -288,7 +288,7 @@ syncFullscreen();
 function setBackendStatus(message){$('backendStatus').textContent=message;$('backendPreviewStatus').textContent=message;}
 async function checkBackend(){
   if(healthChecking)return;
-  healthChecking=true;pilotReady=false;assessmentDraftReady=false;$('retryBackend').hidden=true;setLoginControls();
+  healthChecking=true;pilotReady=false;assessmentDraftReady=false;monthlyDraftReady=false;$('retryBackend').hidden=true;setLoginControls();
   setBackendStatus('Đang kiểm tra kết nối hệ thống…');$('loginStatus').textContent='Có thể nhập tài khoản và mật khẩu; chỉ gửi khi kết nối được xác nhận.';
   const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),30000);
   try {
@@ -298,7 +298,7 @@ async function checkBackend(){
     if(result.ok!==true||result.data?.service!=='HVA-NQ52')throw new Error('SERVICE_MISMATCH');
     setBackendStatus('Đã kết nối hệ thống HVA–NQ52');
     pilotReady=result.data.authMode==='LOCAL_PILOT'&&result.data.version==='0.2.0';
-    assessmentDraftReady=result.data.assessmentDraftVersion==="QD32-M03-2026-04-23-DRAFT1";
+    assessmentDraftReady=result.data.assessmentDraftVersion==="QD32-M03-2026-04-23-DRAFT1";monthlyDraftReady=result.data.monthlyDraftVersion==="MONTHLY-DRAFT-1";
     $('loginStatus').textContent=pilotReady?'Có thể đăng nhập bằng tài khoản đã được cấp.':'Hệ thống chưa mở xác thực thử nghiệm. Liên hệ quản trị.';
   }catch(_){setBackendStatus('Chưa kết nối được hệ thống.');$('loginStatus').textContent='Chưa gửi thông tin đăng nhập. Bấm Thử kết nối lại; nếu vẫn lỗi, liên hệ quản trị.';}
   finally{clearTimeout(timeout);healthChecking=false;$('retryBackend').hidden=pilotReady;setLoginControls();}
@@ -454,10 +454,9 @@ async function loadModule(message=''){
         const report=ownRecords(rows,u)[0],d=report?.data||{};
         if(id==='07'){if(report)reportCard(report,true);workspaceNote('Chưa có chức năng kết luận xếp loại chính thức; đề xuất rà soát không phải kết quả cuối cùng.');}
         else if(id==='03'){
-          workspaceNote('Kiểm tra nhiệm vụ và minh chứng dưới đây. Muốn cập nhật kết quả từng nhiệm vụ, chọn Nhiệm vụ của tôi. Biểu mẫu báo cáo đầy đủ đang được tích hợp.');if(report)reportCard(report);else workspaceNote('Chưa có bản nháp báo cáo tháng này.');
           const tasks=ownRecords(await read('listTasks'),u);if(!current())return;
-          taskTable($('workspaceBody'),tasks);assessmentChecks($('workspaceBody'),tasks,d.sourceNote);
-          actionButton($('workspaceBody'),'Cập nhật kết quả nhiệm vụ',async()=>{selectedModule='02';render();});actionButton($('workspaceBody'),'Tiếp tục tự đánh giá',async()=>{selectedModule='04';render();});
+          const module=await import('./assets/tu-bao-cao.js?v=1');if(!current())return;
+          await module.openMonthlyReport($('workspaceBody'),{user:u,month,report,tasks,ready:monthlyDraftReady,write:ctx.write,current,navigate:(id)=>{selectedModule=id;render();},errorText:workError});
         }else {
           const tasks=ownRecords(await read('listTasks'),u);if(!current())return;originalEvaluationWorkspace($('workspaceBody'),u,month,report,tasks,ctx);
         }

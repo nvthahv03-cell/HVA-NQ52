@@ -6,7 +6,7 @@ function nqOut_(ok,data,code){
   return ContentService.createTextOutput(JSON.stringify(ok?{ok:true,data}:{ok:false,code})).setMimeType(ContentService.MimeType.JSON);
 }
 function doGet(){
-  return nqOut_(true,{service:'HVA-NQ52',version:'0.2.0',stage:'DEVELOPMENT',assessmentDraftVersion:typeof NQ52_QD32_DRAFT_VERSION==='undefined'?null:NQ52_QD32_DRAFT_VERSION,authMode:PropertiesService.getScriptProperties().getProperty('NQ52_AUTH_MODE')==='LOCAL_PILOT'?'LOCAL_PILOT':'LOCKED'});
+  return nqOut_(true,{service:'HVA-NQ52',version:'0.2.0',stage:'DEVELOPMENT',assessmentDraftVersion:typeof NQ52_QD32_DRAFT_VERSION==='undefined'?null:NQ52_QD32_DRAFT_VERSION,monthlyDraftVersion:typeof NQ52_MONTHLY_DRAFT_VERSION==='undefined'?null:NQ52_MONTHLY_DRAFT_VERSION,authMode:PropertiesService.getScriptProperties().getProperty('NQ52_AUTH_MODE')==='LOCAL_PILOT'?'LOCAL_PILOT':'LOCKED'});
 }
 function nqThrottleLogin_(p){
   const name=typeof p.username==='string'?p.username.trim().toLowerCase().slice(0,100):'';
@@ -38,6 +38,7 @@ function doPost(e){
         case 'saveTaskResult':return nqTaskResult_(u,p);
         case 'listReports':return nqListRecords_(u,p,'NQ52_REPORTS');
         case 'saveReportDraft':return nqReportDraft_(u,p);
+        case 'saveMonthlyReportDraft':if(typeof nqSaveMonthlyDraft_!=='function')nqError_('CONFIG_REQUIRED');return nqSaveMonthlyDraft_(u,p);
         case 'submitReport':return nqSubmitReport_(u,p);
         case 'reviewReport':return nqReview_(u,p);
         case 'listMeetings':return nqListMeetings_(u,p);
