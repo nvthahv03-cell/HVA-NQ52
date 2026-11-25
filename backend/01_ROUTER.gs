@@ -39,7 +39,7 @@ function doPost(e){
         case 'listReports':return nqListRecords_(u,p,'NQ52_REPORTS');
         case 'saveReportDraft':return nqReportDraft_(u,p);
         case 'saveMonthlyReportDraft':if(typeof nqSaveMonthlyDraft_!=='function')nqError_('CONFIG_REQUIRED');return nqSaveMonthlyDraft_(u,p);
-        case 'submitReport':return nqSubmitReport_(u,p);
+        case 'submitReport':nqError_('OFFICIAL_SUBMISSION_LOCKED');
         case 'reviewReport':return nqReview_(u,p);
         case 'listMeetings':return nqListMeetings_(u,p);
         case 'createMeetingDraft':return nqCreateMeeting_(u,p);
@@ -52,7 +52,7 @@ function doPost(e){
   }catch(err){
     // No request body, credentials, tokens, or stack trace in client responses/logs.
     const code=String(err&&err.message||'');
-    const allowed=['INVALID_REQUEST','INVALID_INPUT','INVALID_CREDENTIALS','AUTH_REQUIRED','PASSWORD_CHANGE_REQUIRED','PASSWORD_POLICY','PASSWORD_CHANGE_FAILED','TRY_LATER','BUSY','CONFIG_REQUIRED','SCHEMA_MISMATCH','SETUP_REQUIRED','FORBIDDEN','NOT_FOUND','INVALID_MONTH','INVALID_DATE','INVALID_STATE','INVALID_CATEGORY','INVALID_RESULT','INVALID_CLASS','INVALID_MODE','INVALID_PARTICIPANTS','TARGET_NOT_ACTIVE','HISTORICAL_TASK_REQUIRES_SOURCE','REPORT_ALREADY_SUBMITTED','DUPLICATE_TASK','REPORT_LOCKED','INCOMPLETE_REPORT','TASK_RESULTS_INCOMPLETE','MISSING_TASK_SOURCE','REPORT_TOO_LARGE','DUPLICATE_HISTORY','UNKNOWN_ACTION'];
+    const allowed=['INVALID_REQUEST','INVALID_INPUT','INVALID_CREDENTIALS','AUTH_REQUIRED','PASSWORD_CHANGE_REQUIRED','PASSWORD_POLICY','PASSWORD_CHANGE_FAILED','TRY_LATER','BUSY','CONFIG_REQUIRED','SCHEMA_MISMATCH','SETUP_REQUIRED','FORBIDDEN','NOT_FOUND','INVALID_MONTH','INVALID_DATE','INVALID_STATE','INVALID_CATEGORY','INVALID_RESULT','INVALID_CLASS','INVALID_MODE','INVALID_PARTICIPANTS','TARGET_NOT_ACTIVE','HISTORICAL_TASK_REQUIRES_SOURCE','REPORT_ALREADY_SUBMITTED','DUPLICATE_TASK','REPORT_LOCKED','INCOMPLETE_REPORT','TASK_RESULTS_INCOMPLETE','MISSING_TASK_SOURCE','REPORT_TOO_LARGE','DUPLICATE_HISTORY','OFFICIAL_SUBMISSION_LOCKED','UNKNOWN_ACTION'];
     return nqOut_(false,null,allowed.includes(code)?code:'SERVER_ERROR');
   }
 }
