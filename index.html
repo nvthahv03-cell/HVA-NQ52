@@ -26,6 +26,7 @@ html:fullscreen,html:fullscreen body{background:#f5f8fb}
 html:fullscreen .shell{max-width:1700px}
 .shell{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
 @media(max-width:720px){.header-tools{gap:4px}.header-tools .fullscreen-btn{padding:7px}.header-tools .fullscreen-text{display:none}.header-tools .version{font-size:8px}.shell{width:auto;padding-bottom:calc(115px + env(safe-area-inset-bottom,0px))}}
+.dtht-auth-btn.is-checking{display:flex;align-items:center;justify-content:center;gap:10px}.dtht-auth-btn.is-checking::before{content:"";width:18px;height:18px;border:2px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:nqspin .8s linear infinite}@keyframes nqspin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.dtht-auth-btn.is-checking::before{animation:none}}
 </style></head>
 <body>
 <section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><div class="auth-fullscreen"><button type="button" class="fullscreen-btn" id="authFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
@@ -134,10 +135,10 @@ function showChange(){ $('app').hidden=true;$('app').inert=true;$('auth').hidden
 async function login(){
   if(!pilotReady||busy||session)return;const username=$('loginUser').value.trim(),password=$('loginPass').value;
   if(!username||!password){$('authHelp').textContent='Nhập tên đăng nhập và mật khẩu.';return;}
-  busy=true;setLoginControls();$('authHelp').textContent='Đang xác thực…';
+  busy=true;setLoginControls();$('loginBtn').classList.add('is-checking');$('loginBtn').textContent='ĐANG XÁC THỰC…';$('authHelp').textContent='Đang kiểm tra tài khoản và mật khẩu.';
   try{const data=await api('login',{username,password});if(typeof data?.token!=='string'||!Array.isArray(data?.user?.roles))throw Error('SERVER_ERROR');session=data;clearLogin();if(data.user.mustChange){$('authHelp').textContent='Đăng nhập lần đầu: cần đổi mật khẩu trước khi tiếp tục.';showChange();}else enterPortal();}
   catch(e){$('loginPass').value='';$('authHelp').textContent=authMessage(e);}
-  finally{busy=false;setLoginControls();}
+  finally{busy=false;$('loginBtn').classList.remove('is-checking');$('loginBtn').textContent='ĐĂNG NHẬP';setLoginControls();}
 }
 async function changePassword(){
   if(!session||busy)return;const oldPassword=$('oldPass').value,newPassword=$('newPass').value;
