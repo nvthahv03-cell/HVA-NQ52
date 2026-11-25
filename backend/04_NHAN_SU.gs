@@ -1,5 +1,5 @@
 /**
- * HVA-NQ52 | 04_NHAN_SU.gs | Personnel directory 0.2
+ * HVA-NQ52 | 04_NHAN_SU.gs | Personnel directory 0.3
  * Ke thua quy tac danh muc to, unitKey, chong trung cua HVA_Personnel.js.
  * Doc ban sao NHAN_SU cua NQ52; KHONG goi API/session EDOS.
  * Chi chay ham quan tri trong Apps Script; khong mo qua Router.
@@ -55,6 +55,10 @@ function nq52ReadPersonnel_() {
   const sourceId=String(props.getProperty('NQ52_PERSONNEL_SOURCE_ID')||'').trim();
   if(!sourceId)throw new Error('Chua cau hinh NQ52_PERSONNEL_SOURCE_ID.');
   if(sourceId===props.getProperty('NQ52_SHEET_ID'))throw new Error('Nguon nhan su phai la bang tinh rieng.');
+  const root=nq52ProjectRoot_(props);
+  const file=DriveApp.getFileById(sourceId);
+  nq52Restricted_(file,'NGUON_NHAN_SU');
+  if(!nq52WithinProject_(file,root))throw new Error('NGUON_NHAN_SU_KHONG_NAM_TRONG_THU_MUC_NQ52');
   const source=SpreadsheetApp.openById(sourceId);
   if(source.getName()!=='Du_lieu_NhanSu_HVA_NQ52')throw new Error('Kiem tra lai ten bang tinh nguon NQ52; khong dung ban goc EDOS.');
   const sh=source.getSheetByName('NHAN_SU');
@@ -136,7 +140,16 @@ function syncNQ52Personnel(){
     const source=nq52ReadPersonnel_(), stats=nq52PersonnelStats_(source);
     if(!source.people.length||source.issues.some(x=>x.blocking))throw new Error('DUNG DONG BO: nguon rong hoac trung/thieu dinh danh. Chay previewNQ52Personnel.');
     const book=nqBook_();
-    if(book.getName()!=='HVA_NQ52_DATABASE')throw new Error('Sai DATABASE NQ52.');
+    nq52CheckDatabaseName_(book);
+    const root=nq52ProjectRoot_(PropertiesService.getScriptProperties());
+    const folders=root.getFoldersByName('01_CO_SO_DU_LIEU');
+    if(!folders.hasNext())throw new Error('CHUA_KHOI_TAO_DATABASE');
+    const folder=folders.next();
+    if(folders.hasNext())throw new Error('TRUNG_THU_MUC_DATABASE');
+    nq52Restricted_(folder,'01_CO_SO_DU_LIEU');
+    const dbFile=DriveApp.getFileById(book.getId());
+    nq52Restricted_(dbFile,'DATABASE');
+    if(!nq52HasParent_(dbFile,folder.getId()))throw new Error('DATABASE_KHONG_NAM_TRONG_THU_MUC_NQ52');
     let sh=book.getSheetByName('NQ52_PERSONNEL');
     if(!sh)sh=book.insertSheet('NQ52_PERSONNEL');
     const h=NQ52_DIRECTORY_HEADERS, n=h.length;
@@ -144,7 +157,8 @@ function syncNQ52Personnel(){
       sh.getRange(1,1,1,n).setValues([h]).setBackground('#103E62').setFontColor('#FFFFFF').setFontWeight('bold').setWrap(true);
       sh.setFrozenRows(1);
     }
-    if(h.some((k,i)=>sh.getRange(1,i+1).getDisplayValue()!==k))throw new Error('SCHEMA_MISMATCH: NQ52_PERSONNEL');
+    const actual=sh.getRange(1,1,1,n).getDisplayValues()[0];
+    if(h.some((k,i)=>actual[i]!==k))throw new Error('SCHEMA_MISMATCH: NQ52_PERSONNEL');
     const last=sh.getLastRow(), rows=last>1?sh.getRange(2,1,last-1,n).getDisplayValues():[];
     const existing=new Map(), ids=new Set(), sourceKeys=new Set(source.people.map(p=>p.username));
     rows.forEach((r,i)=>{
