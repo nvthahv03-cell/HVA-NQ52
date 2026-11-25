@@ -40,6 +40,18 @@ html:fullscreen .shell{max-width:1700px}
 @media(max-width:1250px){.hva-pro-header-inner{flex-wrap:wrap;gap:10px;padding:10px 18px 13px}.header-tools{margin-left:auto}.header-nav{order:3;flex:1 1 100%;max-width:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.header-nav button{min-height:52px}}
 @media(max-width:720px){.hva-pro-header-inner{padding:8px;gap:8px}.header-nav{gap:5px}.header-nav button{gap:4px;padding:7px 3px;font-size:11px;min-height:42px;border-radius:8px}.header-nav svg{width:17px;height:17px}.shell{padding-bottom:24px}}
 @media(max-width:360px){.header-nav button{font-size:10px;gap:3px}.header-nav svg{width:14px;height:14px}}
+/* Website workbench: vertical module menu and dedicated content pane. */
+.workbench{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:20px;margin-top:24px;align-items:start;scroll-margin-top:155px}
+.workbench-sidebar,.workbench-main{min-width:0;background:#fff;border:1px solid #dce8f1;border-radius:16px;box-shadow:0 6px 20px #0f4c810d}
+.workbench-sidebar{padding:16px 12px}.workbench-sidebar .portal-section-title{margin:0 5px 14px;font-size:14px}
+.module-menu{display:grid;gap:8px}.module-button{width:100%;min-height:64px;display:grid;grid-template-columns:46px minmax(0,1fr) 16px;gap:9px;align-items:center;text-align:left;padding:10px 12px;border:1px solid #d7e5ef;border-radius:10px;background:#f7fbff;color:#123e6c}
+.module-button:hover{background:#eaf5ff;border-color:#95c8ea}.module-button[aria-current="true"]{background:linear-gradient(110deg,#075cad,#0783be);border-color:#075cad;color:#fff;box-shadow:0 4px 12px #075cad24}
+.module-button .module-code{font-size:11px;font-weight:800;letter-spacing:.02em}.module-button .module-label{font-size:15px;font-weight:800;line-height:1.3}.module-button .module-arrow{text-align:right;font-size:20px;opacity:.8}
+.workbench-main{padding:22px 24px;min-height:365px}.workbench-head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #e2edf5;padding-bottom:14px;margin-bottom:16px}.workbench-head h2{font-size:23px;margin:3px 0;color:#073b78}.workbench-head p{margin:0}
+#workspaceStatus{font-size:13px;color:#476881;margin:10px 0;white-space:pre-wrap}#workspaceStatus:empty{display:none}
+.workspace-record{border:1px solid #dce8f1;border-radius:12px;padding:15px;margin:10px 0;background:#fbfdff;overflow-wrap:anywhere}.workspace-record h3{font-size:16px;color:#075cad;margin:0 0 7px}.workspace-record p{margin:6px 0;white-space:pre-wrap}
+.workspace-form{display:grid;gap:10px;margin-top:12px}.workspace-form label{display:grid;gap:4px;font-weight:700;font-size:13px}.workspace-form textarea{min-height:85px;padding:10px;border:1px solid #b7cee4;border-radius:8px;resize:vertical;font:inherit;width:100%}.workspace-form select{width:100%}.workspace-form .btn{justify-self:start}.workspace-note{padding:12px;background:#f2f8fd;border-radius:8px;color:#365f7f;margin:10px 0;white-space:pre-wrap}
+@media(max-width:850px){.workbench{grid-template-columns:1fr;gap:12px;scroll-margin-top:185px}.workbench-sidebar{padding:12px}.module-button{min-height:48px}.workbench-main{padding:15px;min-height:280px}.workbench-head h2{font-size:19px}}
 </style></head>
 <body>
 <section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><div class="auth-fullscreen"><button type="button" class="fullscreen-btn" id="authFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
@@ -50,12 +62,12 @@ html:fullscreen .shell{max-width:1700px}
 <header class="hva-pro-header"><div class="hva-pro-header-inner"><div class="hva-pro-brand"><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="hva-pro-brandtext"><div class="hva-pro-kicker">TRƯỜNG THPT HÒA VANG</div><div class="hva-pro-school">HVA–NQ52</div><div class="hva-pro-slogan">Giao nhiệm vụ – Tự báo cáo – Đánh giá – Lưu trữ</div></div></div><nav class="header-nav" aria-label="Điều hướng chính HVA–NQ52"><button type="button" id="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-7 9 7v10h-6v-6H9v6H3z"/></svg>Trang chủ</button><button type="button" id="personal"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Cá nhân</button><button type="button" id="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h6l2 2h8v13H4z"/><path d="M8 12h8M8 16h8"/></svg>Hồ sơ</button><button type="button" id="about"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>Về NQ52</button></nav><div class="header-tools"><span class="version" id="portalVersion">V1 · Xem trước</span><button type="button" class="fullscreen-btn" id="appFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div></div></header>
 <main class="shell"><section class="hero"><h1>Quản lý và đánh giá nhiệm vụ hằng tháng</h1><p>Nền tảng độc lập · Cán bộ quản lý, giáo viên và nhân viên</p></section>
 <div class="user-card"><div class="user-avatar" aria-hidden="true">◉</div><div><div class="user-name" id="currentName">Chưa đăng nhập</div><div class="muted" id="currentUnit">Xem trước giao diện, không sử dụng danh tính thật</div></div><div class="actions"><button class="btn" id="returnLogin">Đổi TK / Về đăng nhập</button></div></div>
-<div class="notice"><b>Bản phát triển:</b> <span id="backendPreviewStatus" role="status">Đang kiểm tra kết nối Backend…</span> Nghiệp vụ chỉ xem trước, chưa nhập hồ sơ hoặc minh chứng thật.</div>
+<div class="notice"><b>Bản phát triển:</b> <span id="backendPreviewStatus" role="status">Đang kiểm tra kết nối Backend…</span> Đang thử nghiệm kết nối nghiệp vụ; chỉ dùng dữ liệu thử, chưa nhập hồ sơ hoặc minh chứng chính thức.</div>
 <div class="toolbar"><label><span id="monthLabel">Tháng đánh giá (xem trước)</span><input id="month" type="month"></label><label id="roleLabel">Nhóm giao diện minh họa<select id="role"><option value="all">Tất cả</option><option value="gv">Giáo viên</option><option value="nv">Nhân viên</option><option value="tt">Tổ trưởng</option><option value="bgh">Cán bộ quản lý</option></select></label></div>
 <section class="nvs-chooser"><div class="nvs-choose-heading"><h2>KHÔNG GIAN LÀM VIỆC NQ52</h2><p>Đăng nhập một lần · Phân quyền theo tài khoản khi vận hành</p></div><div class="nvs-two-gates">
 <button class="nvs-gate nvs-gate-admin" data-gate="admin"><span class="gate-icon" aria-hidden="true">▦</span><strong>QUẢN LÝ – ĐÁNH GIÁ</strong><small>Giao nhiệm vụ · Rà soát · Họp đánh giá · Tổng hợp</small><span class="gate-enter">Xem không gian quản lý</span></button>
 <button class="nvs-gate nvs-gate-work" data-gate="work"><span class="gate-icon" aria-hidden="true">✓</span><strong>TỰ BÁO CÁO – ĐÁNH GIÁ</strong><small>Nhiệm vụ của tôi · Minh chứng · Tự đánh giá · Kết quả</small><span class="gate-enter">Xem không gian cá nhân</span></button></div><p class="nvs-process">Giao nhiệm vụ đầu tháng → Thực hiện → Tự báo cáo → Rà soát → Họp ngày 25–26 (dự kiến) → Kết luận</p></section>
-<section id="catalog"><div class="portal-section-title" id="catalogTitle">PHÂN HỆ NGHIỆP VỤ</div><div id="modules" class="portal-grid"></div></section></main>
+<section id="catalog" class="workbench"><aside class="workbench-sidebar" aria-label="Danh mục nghiệp vụ"><div class="portal-section-title" id="catalogTitle">PHÂN HỆ NGHIỆP VỤ</div><div id="modules" class="module-menu"></div></aside><section class="workbench-main" aria-label="Nội dung nghiệp vụ"><div class="workbench-head"><div><span id="workspaceCode" class="portal-code"></span><h2 id="workspaceTitle">Không gian nghiệp vụ</h2><p id="workspaceDesc" class="muted"></p></div><button type="button" class="btn" id="refreshModule" hidden>Tải lại</button></div><div id="workspaceStatus" role="status" aria-live="polite"></div><div id="workspaceBody"></div></section></section></main>
 </div>
 <dialog id="detail" aria-labelledby="dt"><h2 id="dt"></h2><p id="dd"></p><ul id="dl"></ul><p id="ds" class="muted"></p><a id="meetingLink" href="./NQ52_CuocHop.html" hidden>Mở trang xem trước Cuộc họp</a><form method="dialog"><button class="btn primary">Đóng</button></form></dialog>
 <script>
@@ -121,7 +133,84 @@ async function checkBackend(){
   finally{clearTimeout(timeout);}
 }
 function el(tag,t,c){const e=document.createElement(tag);e.textContent=t;if(c)e.className=c;return e}
-function render(){const role=$('role').value;const items=modules.filter(m=>(gate==='all'||m[3]==='both'||m[3]===gate)&&(role==='all'||m[4].includes(role)));$('catalogTitle').textContent=gate==='admin'?'QUẢN LÝ – ĐÁNH GIÁ':gate==='work'?'TỰ BÁO CÁO – ĐÁNH GIÁ':'PHÂN HỆ NGHIỆP VỤ';$('modules').replaceChildren(...items.map(m=>{const b=el('button','','portal-card');b.type='button';b.append(el('span','NQ'+m[0],'portal-code'),el('strong',m[1],'portal-name'),el('span',m[2],'portal-desc'),el('span','Xem nội dung nghiệp vụ ›','portal-action'));b.onclick=()=>show(m[1],m[2],m[5],m[0]==='06');return b}));if(!items.length)$('modules').append(el('p','Không có phân hệ trong lựa chọn xem trước này.','muted'))}
+let selectedModule=null, moduleRequest=0;
+const stateLabels={ASSIGNED:'Đã giao',ACCEPTED:'Đã tiếp nhận',IN_PROGRESS:'Đang thực hiện',RESULT_RECORDED:'Đã ghi kết quả',CANCELLED:'Đã hủy',DRAFT:'Bản nháp',SUBMITTED:'Đã gửi',REVIEWED:'Đã rà soát',IMPORTED_UNVERIFIED:'Dữ liệu nhập – chưa xác minh'};
+const classLabels={HTXSNV:'Hoàn thành xuất sắc nhiệm vụ',HTTNV:'Hoàn thành tốt nhiệm vụ',HTNV:'Hoàn thành nhiệm vụ',KHTNV:'Không hoàn thành nhiệm vụ'};
+function visibleModules(){const role=$('role').value;return modules.filter(m=>(gate==='all'||m[3]==='both'||m[3]===gate)&&(role==='all'||m[4].includes(role)));}
+function render(){
+  const items=visibleModules();if(!items.some(m=>m[0]===selectedModule))selectedModule=items[0]?.[0]||null;
+  $('catalogTitle').textContent=gate==='admin'?'QUẢN LÝ – ĐÁNH GIÁ':gate==='work'?'TỰ BÁO CÁO – ĐÁNH GIÁ':'PHÂN HỆ NGHIỆP VỤ';
+  $('modules').replaceChildren(...items.map(m=>{const b=el('button','','module-button');b.type='button';b.setAttribute('aria-current',String(m[0]===selectedModule));b.append(el('span','NQ'+m[0],'module-code'),el('span',m[1],'module-label'),el('span','›','module-arrow'));b.onclick=()=>{selectedModule=m[0];render();};return b;}));
+  loadModule();
+}
+function workspaceNote(t){$('workspaceBody').append(el('p',t,'workspace-note'));}
+function recordCard(title){const card=el('article','','workspace-record');card.append(el('h3',title));$('workspaceBody').append(card);return card;}
+function fieldLine(card,label,value){if(value!==undefined&&value!==null&&String(value)!=='')card.append(el('p',label+': '+String(value)));}
+function ownRecords(rows,u){return rows.filter(x=>String(x.userId)===String(u.id));}
+function formField(form,label,key,value='',options=null,max=4000){const wrap=el('label',label),input=document.createElement(options?'select':'textarea');input.name=key;if(options){options.forEach(([v,t])=>{const o=el('option',t);o.value=v;input.append(o);});}else input.maxLength=max;input.value=value||'';wrap.append(input);form.append(wrap);return input;}
+function actionButton(parent,title,handler){const b=el('button',title,'btn primary');b.type='button';b.onclick=async()=>{if(b.disabled)return;b.disabled=true;try{await handler();}catch(e){if(b.isConnected)$('workspaceStatus').textContent=workError(e);}finally{if(b.isConnected)b.disabled=false;}};parent.append(b);return b;}
+function workError(e){return ({AUTH_REQUIRED:'Phiên đăng nhập đã hết hạn. Vui lòng đăng xuất rồi đăng nhập lại.',FORBIDDEN:'Tài khoản không có quyền thực hiện nghiệp vụ này.',INVALID_STATE:'Trạng thái hồ sơ đã thay đổi. Hãy tải lại.',REPORT_LOCKED:'Báo cáo đã gửi, không thể sửa kết quả.',INCOMPLETE_REPORT:'Chưa đủ nội dung báo cáo.',MISSING_TASK_SOURCE:'Cần ghi nguồn nhiệm vụ khi chưa có nhiệm vụ được giao.',TASK_RESULTS_INCOMPLETE:'Cần cập nhật kết quả tất cả nhiệm vụ trước khi gửi.',INVALID_INPUT:'Vui lòng kiểm tra nội dung bắt buộc.'})[e.message]||'Không thể hoàn tất yêu cầu. Hãy tải lại và kiểm tra kết nối.';}
+function taskCard(t,ctx,editable){
+  const d=t.data||{},card=recordCard(d.title||'Nhiệm vụ');fieldLine(card,'Trạng thái',stateLabels[t.state]||t.state);fieldLine(card,'Hạn hoàn thành',d.deadline);fieldLine(card,'Sản phẩm',d.deliverable);fieldLine(card,'Yêu cầu',d.acceptance);fieldLine(card,'Kết quả',d.result?.description);fieldLine(card,'Minh chứng',d.result?.evidence);
+  if(!editable)return;
+  if(t.state==='ASSIGNED')actionButton(card,'Xác nhận tiếp nhận',()=>ctx.write('acceptTask',{id:t.id},'Đã tiếp nhận nhiệm vụ.'));
+  if(['ACCEPTED','IN_PROGRESS','RESULT_RECORDED'].includes(t.state)){
+    const f=el('div','','workspace-form');card.append(f);
+    const status=formField(f,'Mức độ thực hiện','resultStatus',d.result?.status||'COMPLETED',[['COMPLETED','Hoàn thành'],['PARTIAL','Hoàn thành một phần'],['NOT_COMPLETED','Chưa hoàn thành']]);
+    const desc=formField(f,'Mô tả kết quả','description',d.result?.description||'');const evidence=formField(f,'Minh chứng (ghi chú hoặc liên kết)','evidence',d.result?.evidence||'',null,2000);
+    actionButton(f,'Lưu kết quả thử nghiệm',async()=>{if(!desc.value.trim())throw Error('INVALID_INPUT');await ctx.write('saveTaskResult',{id:t.id,resultStatus:status.value,description:desc.value,evidence:evidence.value},'Đã lưu kết quả nhiệm vụ.');});
+  }
+}
+function reportCard(report,showReview=false){const d=report.data||{},card=recordCard('Báo cáo tháng '+report.month);fieldLine(card,'Trạng thái',stateLabels[report.state]||report.state);fieldLine(card,'Ưu điểm',d.self?.strength);fieldLine(card,'Hạn chế',d.self?.weakness);fieldLine(card,'Giải pháp',d.self?.solution);fieldLine(card,'Nhiệm vụ bổ sung',d.additionalWork);fieldLine(card,'Nguồn nhiệm vụ',d.sourceNote);if(showReview&&d.review){fieldLine(card,'Nhận xét rà soát',d.review.comment);fieldLine(card,'Đề xuất xếp loại (chưa kết luận)',classLabels[d.review.proposedClass]||d.review.proposedClass);fieldLine(card,'Lý do',d.review.reason);}return card;}
+async function loadModule(message=''){
+  const request=++moduleRequest,id=selectedModule,m=modules.find(x=>x[0]===id),u=session?.user,token=session?.token,month=$('month').value;
+  $('workspaceCode').textContent=m?'NQ'+id:'';$('workspaceTitle').textContent=m?m[1]:'Không gian nghiệp vụ';$('workspaceDesc').textContent=m?m[2]:'';$('workspaceBody').replaceChildren();$('workspaceStatus').textContent='';$('refreshModule').hidden=!m||!token;
+  if(!m){workspaceNote('Chọn nhóm nghiệp vụ để làm việc.');return;}
+  if(!token){m[5].forEach(t=>workspaceNote(t));workspaceNote('Đăng nhập bằng tài khoản đã được cấp để kết nối dữ liệu.');return;}
+  const current=()=>request===moduleRequest&&session?.token===token&&$('month').value===month;
+  const read=(action)=>api(action,{token,month});
+  const ctx={write:async(action,fields,success)=>{if(!current())throw Error('INVALID_STATE');await api(action,{token,month,...fields});if(current())await loadModule(success);}};
+  $('workspaceStatus').textContent='Đang tải dữ liệu tháng '+month+'…';
+  try{
+    if(id==='01'||id==='02'){
+      const rows=await read('listTasks');if(!current())return;
+      const items=id==='02'?ownRecords(rows,u):rows.filter(x=>String(x.userId)!==String(u.id));if(!items.length)workspaceNote(id==='02'?'Chưa có nhiệm vụ được giao trong tháng này.':'Chưa có nhiệm vụ trong phạm vi quản lý tháng này.');
+      items.forEach(t=>taskCard(t,ctx,id==='02'));if(id==='01')workspaceNote('Đang kết nối danh sách nhiệm vụ; biểu mẫu giao nhiệm vụ quản lý sẽ nghiệm thu riêng.');
+    }else if(['03','04','05','07'].includes(id)){
+      const rows=await read('listReports');if(!current())return;
+      if(id==='05'){const items=rows.filter(x=>String(x.userId)!==String(u.id)&&['SUBMITTED','REVIEWED'].includes(x.state));if(!items.length)workspaceNote('Chưa có báo cáo gửi rà soát trong phạm vi quyền.');items.forEach(r=>reportCard(r,true));workspaceNote('Chưa mở thao tác duyệt và kết luận chính thức.');}
+      else {
+        const report=ownRecords(rows,u)[0],d=report?.data||{};
+        if(id==='07'){if(report)reportCard(report,true);workspaceNote('Chưa có chức năng kết luận xếp loại chính thức; đề xuất rà soát không phải kết quả cuối cùng.');}
+        else if(id==='03'){
+          if(report)reportCard(report);else workspaceNote('Chưa có bản nháp báo cáo tháng này.');
+          const tasks=ownRecords(await read('listTasks'),u);if(!current())return;
+          tasks.forEach(t=>taskCard(t,ctx,false));if(!tasks.length)workspaceNote('Chưa có nhiệm vụ tháng này.');
+          actionButton($('workspaceBody'),'Mở biểu mẫu tự đánh giá và báo cáo',async()=>{selectedModule='04';render();});
+        }else {
+          if(report&&report.state!=='DRAFT'){reportCard(report,true);workspaceNote('Hồ sơ đã gửi, không thể sửa bản nháp.');}
+          else {
+            workspaceNote('Bản nháp tự nhận xét và báo cáo thử nghiệm; chưa chấm điểm hoặc gửi đánh giá chính thức.');
+            const f=el('div','','workspace-form');$('workspaceBody').append(f);
+            const strength=formField(f,'Ưu điểm','strength',d.self?.strength||'',null,5000),weakness=formField(f,'Hạn chế','weakness',d.self?.weakness||'',null,5000),solution=formField(f,'Giải pháp','solution',d.self?.solution||'',null,5000),additionalWork=formField(f,'Nhiệm vụ bổ sung','additionalWork',d.additionalWork||'',null,10000),sourceNote=formField(f,'Nguồn nhiệm vụ (nếu chưa được giao trên hệ thống)','sourceNote',d.sourceNote||'',null,3000);
+            actionButton(f,'Lưu bản nháp thử nghiệm',async()=>{if([strength,weakness,solution].some(x=>!x.value.trim()))throw Error('INVALID_INPUT');await ctx.write('saveReportDraft',{strength:strength.value,weakness:weakness.value,solution:solution.value,additionalWork:additionalWork.value,sourceNote:sourceNote.value,proposedClass:d.self?.proposedClass||''},'Đã lưu bản nháp.');});
+          }
+        }
+      }
+    }else if(id==='06'){
+      const rows=await read('listMeetings');if(!current())return;if(!rows.length)workspaceNote('Chưa có cuộc họp trong phạm vi quyền.');rows.forEach(r=>{const d=r.data||{},card=recordCard(d.title||'Cuộc họp');fieldLine(card,'Ngày',d.date);fieldLine(card,'Địa điểm',d.venue);fieldLine(card,'Nội dung',d.agenda);fieldLine(card,'Trạng thái',stateLabels[r.state]||r.state);});workspaceNote('Chưa mở lập biên bản hoặc kết luận cuộc họp.');
+    }else if(id==='08'){
+      const rows=await read('listHistory');if(!current())return;
+      if(!rows.length)workspaceNote('Chưa có hồ sơ lịch sử trong phạm vi quyền tháng này.');
+      rows.forEach(r=>{const d=r.data||{},card=recordCard('Hồ sơ tháng '+r.month);fieldLine(card,'Nguồn',d.source);fieldLine(card,'Số tham chiếu',d.reference);fieldLine(card,'Xếp loại ghi nhận',classLabels[d.classification]||d.classification);fieldLine(card,'Trạng thái',stateLabels[r.state]||r.state);});
+      if(u.roles.some(x=>['BGH','TTCM','TTVP','DECIDER'].includes(x))){const summary=await read('getMonthlySummary');if(!current())return;(summary.groups||[]).forEach(g=>{const card=recordCard(g.unit+' · '+g.group);fieldLine(card,'Tài khoản đang hoạt động',g.active);fieldLine(card,'Bản nháp',g.draft);fieldLine(card,'Đã gửi',g.submitted);fieldLine(card,'Đã rà soát',g.reviewed);});}
+      workspaceNote('Chưa mở xuất Excel và tính tỷ lệ xếp loại chính thức.');
+    }
+    if(current())$('workspaceStatus').textContent=message||'Đã tải dữ liệu từ Backend.';
+  }catch(e){if(current())$('workspaceStatus').textContent=workError(e);}
+}
+$('refreshModule').onclick=()=>loadModule();
+$('month').onchange=()=>loadModule();
 function show(title,desc,items=[],meeting=false){$('dt').textContent=title;$('dd').textContent=desc;$('dl').replaceChildren(...items.map(s=>el('li',s)));$('ds').textContent='Bản xem trước – chưa vận hành nghiệp vụ thật.';$('meetingLink').hidden=!meeting;$('detail').showModal()}
 function setLoginControls(){const locked=!pilotReady||busy||!!session;$('loginUser').disabled=locked;$('loginPass').disabled=locked;$('loginBtn').disabled=locked;$('changeBtn').disabled=busy;}
 async function api(action,fields={}){
@@ -134,7 +223,7 @@ function authMessage(e){return ({INVALID_CREDENTIALS:'Tên đăng nhập hoặc 
 function clearLogin(){ $('loginUser').value=''; $('loginPass').value=''; $('oldPass').value=''; $('newPass').value=''; $('confirmPass').value=''; $('authHelp').textContent=''; }
 function enterPortal(){
   const u=session?.user, role=u?(u.roles.includes('BGH')?'bgh':u.roles.some(r=>['TTCM','TTVP'].includes(r))?'tt':u.group==='NV'?'nv':'gv'):'all';
-  gate='all';$('role').value=role;$('roleLabel').hidden=!!u;$('role').disabled=!!u;
+  gate='all';selectedModule=null;$('role').value=role;$('roleLabel').hidden=!!u;$('role').disabled=!!u;
   const adminHidden=!!u&&!['bgh','tt'].includes(role);
   document.querySelector('[data-gate="admin"]').hidden=adminHidden;
   document.querySelector('.nvs-two-gates').classList.toggle('single-gate',adminHidden);
@@ -164,13 +253,13 @@ async function changePassword(){
 $('loginBtn').onclick=login;$('loginPass').onkeydown=e=>{if(e.key==='Enter')login();};$('changeBtn').onclick=changePassword;
 $('switchAccount').onclick=()=>{if(!busy)exitPreview();};
 $('forgotPassword').onclick=()=>{$('authHelp').textContent='Liên hệ quản trị viên HVA–NQ52 để xác minh và đặt lại mật khẩu. Không cung cấp mật khẩu cũ cho bất kỳ ai. Chưa mở tự phục hồi qua email.';};
-async function exitPreview(){if(busy)return;const token=session?.token;session=null;clearLogin();if($('detail').open)$('detail').close();$('app').hidden=true;$('app').inert=true;$('auth').hidden=false;$('changePanel').hidden=true;$('preview').hidden=false;busy=!!token;setLoginControls();if(token){try{await api('logout',{token});}catch(_){$('authHelp').textContent='Đã thoát trên trình duyệt; chưa xác nhận thu hồi phiên máy chủ.';}finally{busy=false;setLoginControls();}}$('preview').focus();}
+async function exitPreview(){if(busy)return;const token=session?.token;session=null;moduleRequest++;$('workspaceBody').replaceChildren();$('workspaceStatus').textContent='';clearLogin();if($('detail').open)$('detail').close();$('app').hidden=true;$('app').inert=true;$('auth').hidden=false;$('changePanel').hidden=true;$('preview').hidden=false;busy=!!token;setLoginControls();if(token){try{await api('logout',{token});}catch(_){$('authHelp').textContent='Đã thoát trên trình duyệt; chưa xác nhận thu hồi phiên máy chủ.';}finally{busy=false;setLoginControls();}}$('preview').focus();}
 $('preview').onclick=()=>{if(!session&&!busy)enterPortal();};$('returnLogin').onclick=exitPreview;
 const d=new Date();$('month').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');$('role').onchange=render;
 document.querySelectorAll('[data-gate]').forEach(b=>b.onclick=()=>{gate=b.dataset.gate;render();$('catalog').scrollIntoView({block:'start'})});
 $('home').onclick=()=>{gate='all';if(!session)$('role').value='all';render();window.scrollTo(0,0)};
 $('personal').onclick=()=>{if(session){showChange();return;}show('Cá nhân','Tài khoản và bảo mật',['Đổi tài khoản: trở về màn hình đăng nhập.','Đổi mật khẩu: bắt buộc ở lần đăng nhập đầu; chức năng sẽ mở khi kết nối Backend NQ52.','Quên mật khẩu: khôi phục qua email đã xác minh hoặc quản trị viên NQ52.','Chế độ xem trước không xác thực; không nhập mật khẩu thật.']);};
-$('history').onclick=()=>show('Hồ sơ và dữ liệu lịch sử','Tra cứu theo tháng',['Nhập dữ liệu lịch sử có xác minh.','Xuất Excel khi hoàn thiện nghiệp vụ.']);
+$('history').onclick=()=>{gate='all';selectedModule='08';render();$('catalog').scrollIntoView({block:'start'});};
 $('about').onclick=()=>show('Về HVA–NQ52','Ứng dụng độc lập của Trường THPT Hòa Vang',['Chủ nhiệm dự án: TS. Nguyễn Văn Thà.','Kế thừa nhận diện EDOS, không sử dụng Backend hoặc tài khoản xác thực EDOS.']);
 render();
 checkBackend();
