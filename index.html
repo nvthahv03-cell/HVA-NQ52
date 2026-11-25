@@ -18,12 +18,12 @@ dialog{width:min(480px,calc(100% - 28px));border:1px solid #b7cee4;border-radius
 <section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
 <label class="dtht-auth-field">Tên đăng nhập<input id="loginUser" disabled autocomplete="username" placeholder="Tên đăng nhập kế thừa từ EDOS"></label>
 <label class="dtht-auth-field">Mật khẩu<input id="loginPass" disabled type="password" autocomplete="current-password" placeholder="Mật khẩu riêng NQ52"></label>
-<div class="auth-links"><button type="button" id="switchAccount">Đổi TK</button><button type="button" id="forgotPassword">Quên mật khẩu?</button></div><p class="auth-help" id="authHelp" role="status"></p><button class="dtht-auth-btn" disabled>ĐĂNG NHẬP</button><div class="auth-msg">Đang chuẩn bị kết nối xác thực NQ52. Chưa nhập tài khoản thật.</div><button class="btn preview-btn" id="preview">Xem trước giao diện</button><div class="auth-footer">© 2026 HVA–NQ52 · Truy cập bằng trình duyệt, không cài app</div></div></section>
+<div class="auth-links"><button type="button" id="switchAccount">Đổi TK</button><button type="button" id="forgotPassword">Quên mật khẩu?</button></div><p class="auth-help" id="authHelp" role="status"></p><button class="dtht-auth-btn" disabled>ĐĂNG NHẬP</button><div class="auth-msg"><span id="backendStatus" role="status" aria-live="polite">Đang kiểm tra kết nối Backend…</span><br>Đăng nhập chưa mở. Không nhập tài khoản thật.</div><button class="btn preview-btn" id="preview">Xem trước giao diện</button><div class="auth-footer">© 2026 HVA–NQ52 · Truy cập bằng trình duyệt, không cài app</div></div></section>
 <div id="app" hidden inert>
 <header class="hva-pro-header"><div class="hva-pro-header-inner"><div class="hva-pro-brand"><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="hva-pro-brandtext"><div class="hva-pro-kicker">TRƯỜNG THPT HÒA VANG</div><div class="hva-pro-school">HVA–NQ52</div><div class="hva-pro-slogan">Giao nhiệm vụ – Tự báo cáo – Đánh giá – Lưu trữ</div></div></div><span class="version">V1 · Xem trước</span></div></header>
 <main class="shell"><section class="hero"><h1>Quản lý và đánh giá nhiệm vụ hằng tháng</h1><p>Nền tảng độc lập · Cán bộ quản lý, giáo viên và nhân viên</p></section>
 <div class="user-card"><div class="user-avatar" aria-hidden="true">◉</div><div><div class="user-name">Chưa đăng nhập</div><div class="muted">Xem trước giao diện, không sử dụng danh tính thật</div></div><div class="actions"><button class="btn" id="returnLogin">Đổi TK / Về đăng nhập</button></div></div>
-<div class="notice"><b>Bản phát triển:</b> chưa kết nối xác thực hoặc API nghiệp vụ; không nhập hồ sơ, mật khẩu hay minh chứng thật.</div>
+<div class="notice"><b>Bản phát triển:</b> <span id="backendPreviewStatus" role="status">Đang kiểm tra kết nối Backend…</span> Chưa mở xác thực và API nghiệp vụ; không nhập hồ sơ, mật khẩu hay minh chứng thật.</div>
 <div class="toolbar"><label>Tháng đánh giá (xem trước)<input id="month" type="month"></label><label>Nhóm giao diện minh họa<select id="role"><option value="all">Tất cả</option><option value="gv">Giáo viên</option><option value="nv">Nhân viên</option><option value="tt">Tổ trưởng</option><option value="bgh">Cán bộ quản lý</option></select></label></div>
 <section class="nvs-chooser"><div class="nvs-choose-heading"><h2>KHÔNG GIAN LÀM VIỆC NQ52</h2><p>Đăng nhập một lần · Phân quyền theo tài khoản khi vận hành</p></div><div class="nvs-two-gates">
 <button class="nvs-gate nvs-gate-admin" data-gate="admin"><span class="gate-icon" aria-hidden="true">▦</span><strong>QUẢN LÝ – ĐÁNH GIÁ</strong><small>Giao nhiệm vụ · Rà soát · Họp đánh giá · Tổng hợp</small><span class="gate-enter">Xem không gian quản lý</span></button>
@@ -44,6 +44,19 @@ const modules=[
 ['08','Thống kê – Lưu trữ','Tổng hợp, tỷ lệ và Excel','both',['gv','nv','tt','bgh'],['Tra cứu hồ sơ, dữ liệu lịch sử và báo cáo theo phạm vi quyền.']]
 ];
 const $=id=>document.getElementById(id);let gate='all';
+const NQ52_API_URL='https://script.google.com/macros/s/AKfycbxETcgVnmwH2bqENL1iMr8482-BlTsKP1x0FedDscDHfR6FR5-9bFTsPaJrEiaN3yBX/exec';
+function setBackendStatus(message){$('backendStatus').textContent=message;$('backendPreviewStatus').textContent=message;}
+async function checkBackend(){
+  const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),15000);
+  try {
+    const response=await fetch(NQ52_API_URL,{method:'GET',credentials:'omit',redirect:'follow',cache:'no-store',signal:controller.signal});
+    if(!response.ok)throw new Error('HTTP');
+    const result=await response.json();
+    if(result.ok!==true||result.data?.service!=='HVA-NQ52')throw new Error('SERVICE_MISMATCH');
+    setBackendStatus('Backend đã phản hồi · HVA–NQ52');
+  }catch(_){setBackendStatus('Chưa xác nhận kết nối Backend. Có thể thử tải lại trang.');}
+  finally{clearTimeout(timeout);}
+}
 function el(tag,t,c){const e=document.createElement(tag);e.textContent=t;if(c)e.className=c;return e}
 function render(){const role=$('role').value;const items=modules.filter(m=>(gate==='all'||m[3]==='both'||m[3]===gate)&&(role==='all'||m[4].includes(role)));$('catalogTitle').textContent=gate==='admin'?'QUẢN LÝ – ĐÁNH GIÁ':gate==='work'?'TỰ BÁO CÁO – ĐÁNH GIÁ':'PHÂN HỆ NGHIỆP VỤ';$('modules').replaceChildren(...items.map(m=>{const b=el('button','','portal-card');b.type='button';b.append(el('span','NQ'+m[0],'portal-code'),el('strong',m[1],'portal-name'),el('span',m[2],'portal-desc'),el('span','Xem nội dung nghiệp vụ ›','portal-action'));b.onclick=()=>show(m[1],m[2],m[5],m[0]==='06');return b}));if(!items.length)$('modules').append(el('p','Không có phân hệ trong lựa chọn xem trước này.','muted'))}
 function show(title,desc,items=[],meeting=false){$('dt').textContent=title;$('dd').textContent=desc;$('dl').replaceChildren(...items.map(s=>el('li',s)));$('ds').textContent='Bản xem trước – chưa vận hành nghiệp vụ thật.';$('meetingLink').hidden=!meeting;$('detail').showModal()}
@@ -59,4 +72,5 @@ $('personal').onclick=()=>show('Cá nhân','Tài khoản và bảo mật',['Đ�
 $('history').onclick=()=>show('Hồ sơ và dữ liệu lịch sử','Tra cứu theo tháng',['Nhập dữ liệu lịch sử có xác minh.','Xuất Excel khi hoàn thiện nghiệp vụ.']);
 $('about').onclick=()=>show('Về HVA–NQ52','Ứng dụng độc lập của Trường THPT Hòa Vang',['Chủ nhiệm dự án: TS. Nguyễn Văn Thà.','Kế thừa nhận diện EDOS, không sử dụng Backend hoặc tài khoản xác thực EDOS.']);
 render();
+checkBackend();
 </script></body></html>
