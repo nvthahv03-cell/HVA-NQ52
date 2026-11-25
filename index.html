@@ -223,12 +223,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:850px){#app .workbench{grid-template-columns:1fr}#app .header-nav button{font-size:13px;white-space:normal}#app .hero h1,#app .workbench-head h2{font-size:22px}}
 
 #app .module-button.module-no-code{grid-template-columns:minmax(0,1fr) 12px}#app .module-button.module-no-code .module-label{padding-left:4px}
+#auth #retryBackend{display:block;margin:9px auto 0;font-size:13px;border-radius:6px}#auth #retryBackend[hidden]{display:none!important}
 </style></head>
 <body>
 <section id="auth" class="dtht-auth" aria-label="Đăng nhập HVA-NQ52"><div class="dtht-auth-box"><div class="auth-fullscreen"><button type="button" class="fullscreen-btn" id="authFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="dtht-auth-title">HVA–NQ52</div><div class="dtht-auth-sub"><b>TRƯỜNG THPT HÒA VANG</b><br>Nền tảng số hỗ trợ tự báo cáo, theo dõi và đánh giá hiệu quả thực hiện nhiệm vụ hằng tháng</div>
-<label class="dtht-auth-field">Tên đăng nhập<input id="loginUser" disabled autocomplete="username" placeholder="Tên đăng nhập kế thừa từ EDOS"></label>
-<label class="dtht-auth-field">Mật khẩu<input id="loginPass" disabled type="password" autocomplete="current-password" placeholder="Mật khẩu riêng NQ52"></label>
-<div class="auth-links"><button type="button" id="switchAccount">Đổi TK</button><button type="button" id="forgotPassword">Quên mật khẩu?</button></div><p class="auth-help" id="authHelp" role="status"></p><button class="dtht-auth-btn" id="loginBtn" disabled>ĐĂNG NHẬP</button><div class="auth-msg"><span id="backendStatus" role="status" aria-live="polite">Đang kiểm tra kết nối Backend…</span><br><span id="loginStatus" role="status">Đăng nhập chưa mở. Không nhập tài khoản thật.</span></div><div id="changePanel" hidden><p><b>Đổi mật khẩu NQ52</b></p><label class="dtht-auth-field">Mật khẩu hiện tại<input id="oldPass" type="password" autocomplete="current-password"></label><label class="dtht-auth-field">Mật khẩu mới (tối thiểu 6 ký tự, có chữ hoa và !, @ hoặc #)<input id="newPass" type="password" autocomplete="new-password"></label><label class="dtht-auth-field">Nhập lại mật khẩu mới<input id="confirmPass" type="password" autocomplete="new-password"></label><button class="dtht-auth-btn" id="changeBtn" type="button">ĐỔI MẬT KHẨU</button></div><button class="btn preview-btn" id="preview">Xem trước giao diện</button><div class="auth-footer">© 2026 HVA–NQ52 · Truy cập bằng trình duyệt, không cài app</div></div></section>
+<label class="dtht-auth-field">Tên đăng nhập<input id="loginUser" autocomplete="username" placeholder="Tên đăng nhập kế thừa từ EDOS"></label>
+<label class="dtht-auth-field">Mật khẩu<input id="loginPass" type="password" autocomplete="current-password" placeholder="Mật khẩu riêng NQ52"></label>
+<div class="auth-links"><button type="button" id="switchAccount">Đổi TK</button><button type="button" id="forgotPassword">Quên mật khẩu?</button></div><p class="auth-help" id="authHelp" role="status"></p><button class="dtht-auth-btn" id="loginBtn" disabled>ĐĂNG NHẬP</button><div class="auth-msg"><span id="backendStatus" role="status" aria-live="polite">Đang kiểm tra kết nối Backend…</span><br><span id="loginStatus" role="status">Đang kiểm tra trước khi cho phép gửi thông tin đăng nhập.</span><button type="button" id="retryBackend" class="btn" hidden>Thử kết nối lại</button></div><div id="changePanel" hidden><p><b>Đổi mật khẩu NQ52</b></p><label class="dtht-auth-field">Mật khẩu hiện tại<input id="oldPass" type="password" autocomplete="current-password"></label><label class="dtht-auth-field">Mật khẩu mới (tối thiểu 6 ký tự, có chữ hoa và !, @ hoặc #)<input id="newPass" type="password" autocomplete="new-password"></label><label class="dtht-auth-field">Nhập lại mật khẩu mới<input id="confirmPass" type="password" autocomplete="new-password"></label><button class="dtht-auth-btn" id="changeBtn" type="button">ĐỔI MẬT KHẨU</button></div><button class="btn preview-btn" id="preview">Xem trước giao diện</button><div class="auth-footer">© 2026 HVA–NQ52 · Truy cập bằng trình duyệt, không cài app</div></div></section>
 <div id="app" hidden inert>
 <header class="hva-pro-header"><div class="hva-pro-header-inner"><div class="hva-pro-brand"><img class="hva-school-logo" src="./assets/logo-hoavang.png" alt="Logo Trường THPT Hòa Vang" width="104" height="104"><div class="hva-pro-brandtext"><div class="hva-pro-kicker">TRƯỜNG THPT HÒA VANG</div><div class="hva-pro-school">HVA–NQ52</div><div class="hva-pro-slogan">Giao nhiệm vụ – Tự báo cáo – Đánh giá – Lưu trữ</div></div></div><nav class="header-nav" aria-label="Điều hướng chính HVA–NQ52"><button type="button" id="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-7 9 7v10h-6v-6H9v6H3z"/></svg>Trang chủ</button><button type="button" id="personal"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Cá nhân</button><button type="button" id="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h6l2 2h8v13H4z"/><path d="M8 12h8M8 16h8"/></svg>Hồ sơ</button><button type="button" id="about"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>Về NQ52</button></nav><div class="header-tools"><span class="version" id="portalVersion">V1 · Xem trước</span><button type="button" class="fullscreen-btn" id="appFullscreen" data-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5"/></svg><span class="fullscreen-text">Toàn màn hình</span></button></div></div></header>
 <main class="shell"><div class="page-context"><section class="hero"><h1>Quản lý và đánh giá nhiệm vụ hằng tháng</h1><p>Trường THPT Hòa Vang</p></section><div class="user-card"><div class="user-avatar" aria-hidden="true">◉</div><div><div class="user-name" id="currentName">Chưa đăng nhập</div><div class="muted" id="currentUnit">Xem trước giao diện, không sử dụng danh tính thật</div></div><div class="actions"><button type="button" class="btn" id="returnLogin">Đổi TK / Về đăng nhập</button></div></div></div>
@@ -251,7 +252,7 @@ const modules=[
 ];
 const $=id=>document.getElementById(id);let gate='all';
 const NQ52_API_URL='https://script.google.com/macros/s/AKfycbxETcgVnmwH2bqENL1iMr8482-BlTsKP1x0FedDscDHfR6FR5-9bFTsPaJrEiaN3yBX/exec';
-let pilotReady=false, session=null, busy=false, assessmentDraftReady=false;
+let pilotReady=false, session=null, busy=false, assessmentDraftReady=false, healthChecking=false;
 function syncFullscreen(){
   const active=!!(document.fullscreenElement||document.webkitFullscreenElement);
   document.querySelectorAll('[data-fullscreen]').forEach(b=>{
@@ -286,19 +287,21 @@ document.addEventListener('webkitfullscreenchange',syncFullscreen);
 syncFullscreen();
 function setBackendStatus(message){$('backendStatus').textContent=message;$('backendPreviewStatus').textContent=message;}
 async function checkBackend(){
-  const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),15000);
+  if(healthChecking)return;
+  healthChecking=true;pilotReady=false;assessmentDraftReady=false;$('retryBackend').hidden=true;setLoginControls();
+  setBackendStatus('Đang kiểm tra kết nối hệ thống…');$('loginStatus').textContent='Có thể nhập tài khoản và mật khẩu; chỉ gửi khi kết nối được xác nhận.';
+  const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),30000);
   try {
     const response=await fetch(NQ52_API_URL,{method:'GET',credentials:'omit',redirect:'follow',cache:'no-store',signal:controller.signal});
     if(!response.ok)throw new Error('HTTP');
     const result=await response.json();
     if(result.ok!==true||result.data?.service!=='HVA-NQ52')throw new Error('SERVICE_MISMATCH');
-    setBackendStatus('Backend đã phản hồi · HVA–NQ52');
+    setBackendStatus('Đã kết nối hệ thống HVA–NQ52');
     pilotReady=result.data.authMode==='LOCAL_PILOT'&&result.data.version==='0.2.0';
     assessmentDraftReady=result.data.assessmentDraftVersion==="QD32-M03-2026-04-23-DRAFT1";
-    setLoginControls();
-    $('loginStatus').textContent=pilotReady?'Đăng nhập thử nghiệm · Tài khoản đã được cấp mới sử dụng được.':'Đăng nhập chưa mở. Chờ triển khai xác thực NQ52.';
-  }catch(_){setBackendStatus('Chưa xác nhận kết nối Backend. Có thể thử tải lại trang.');}
-  finally{clearTimeout(timeout);}
+    $('loginStatus').textContent=pilotReady?'Có thể đăng nhập bằng tài khoản đã được cấp.':'Hệ thống chưa mở xác thực thử nghiệm. Liên hệ quản trị.';
+  }catch(_){setBackendStatus('Chưa kết nối được hệ thống.');$('loginStatus').textContent='Chưa gửi thông tin đăng nhập. Bấm Thử kết nối lại; nếu vẫn lỗi, liên hệ quản trị.';}
+  finally{clearTimeout(timeout);healthChecking=false;$('retryBackend').hidden=pilotReady;setLoginControls();}
 }
 function el(tag,t,c){const e=document.createElement(tag);e.textContent=t;if(c)e.className=c;return e}
 let selectedModule=null, moduleRequest=0;
@@ -474,7 +477,7 @@ async function loadModule(message=''){
 $('refreshModule').onclick=()=>loadModule();
 $('month').onchange=()=>loadModule();
 function show(title,desc,items=[],meeting=false){$('dt').textContent=title;$('dd').textContent=desc;$('dl').replaceChildren(...items.map(s=>el('li',s)));$('ds').textContent='Bản xem trước – chưa vận hành nghiệp vụ thật.';$('meetingLink').hidden=!meeting;$('detail').showModal()}
-function setLoginControls(){const locked=!pilotReady||busy||!!session;$('loginUser').disabled=locked;$('loginPass').disabled=locked;$('loginBtn').disabled=locked;$('changeBtn').disabled=busy;}
+function setLoginControls(){const inputLocked=busy||!!session;$('loginUser').disabled=inputLocked;$('loginPass').disabled=inputLocked;$('loginBtn').disabled=inputLocked||!pilotReady||healthChecking;$('changeBtn').disabled=busy;}
 async function api(action,fields={}){
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),120000);
   try{const response=await fetch(NQ52_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action,...fields}),credentials:'omit',redirect:'follow',signal:ctrl.signal});
@@ -513,7 +516,7 @@ async function changePassword(){
   catch(e){$('authHelp').textContent=authMessage(e);if(e.message==='AUTH_REQUIRED'){session=null;$('changePanel').hidden=true;$('preview').hidden=false;}}
   finally{$('oldPass').value='';$('newPass').value='';$('confirmPass').value='';busy=false;setLoginControls();}
 }
-$('loginBtn').onclick=login;$('loginPass').onkeydown=e=>{if(e.key==='Enter')login();};$('changeBtn').onclick=changePassword;
+$('retryBackend').onclick=checkBackend;$('loginBtn').onclick=login;$('loginPass').onkeydown=e=>{if(e.key==='Enter')login();};$('changeBtn').onclick=changePassword;
 $('switchAccount').onclick=()=>{if(!busy)exitPreview();};
 $('forgotPassword').onclick=()=>{$('authHelp').textContent='Liên hệ quản trị viên HVA–NQ52 để xác minh và đặt lại mật khẩu. Không cung cấp mật khẩu cũ cho bất kỳ ai. Chưa mở tự phục hồi qua email.';};
 async function exitPreview(){if(busy)return;const token=session?.token;session=null;moduleRequest++;$('workspaceBody').replaceChildren();$('workspaceStatus').textContent='';clearLogin();if($('detail').open)$('detail').close();$('app').hidden=true;$('app').inert=true;$('auth').hidden=false;$('changePanel').hidden=true;$('preview').hidden=false;busy=!!token;setLoginControls();if(token){try{await api('logout',{token});}catch(_){$('authHelp').textContent='Đã thoát trên trình duyệt; chưa xác nhận thu hồi phiên máy chủ.';}finally{busy=false;setLoginControls();}}$('preview').focus();}
@@ -524,6 +527,7 @@ $('home').onclick=()=>{gate=document.querySelector('[data-gate="all"]').hidden?'
 $('personal').onclick=()=>{if(session){showChange();return;}show('Cá nhân','Tài khoản và bảo mật',['Đổi tài khoản: trở về màn hình đăng nhập.','Đổi mật khẩu: bắt buộc ở lần đăng nhập đầu; chức năng sẽ mở khi kết nối Backend NQ52.','Quên mật khẩu: khôi phục qua email đã xác minh hoặc quản trị viên NQ52.','Chế độ xem trước không xác thực; không nhập mật khẩu thật.']);};
 $('history').onclick=()=>{gate='all';selectedModule='08';render();$('catalog').scrollIntoView({block:'start'});};
 $('about').onclick=()=>show('Về HVA–NQ52','Ứng dụng độc lập của Trường THPT Hòa Vang',['Chủ nhiệm dự án: TS. Nguyễn Văn Thà.','Kế thừa nhận diện EDOS, không sử dụng Backend hoặc tài khoản xác thực EDOS.']);
-render();
 checkBackend();
+// Preview navigation must not prevent authentication initialization.
+try{render();}catch(_){$('workspaceStatus').textContent='Không thể khởi tạo giao diện xem trước. Tải lại trang.';}
 </script></body></html>
