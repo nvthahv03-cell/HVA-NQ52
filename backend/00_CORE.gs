@@ -18,7 +18,8 @@ const NQ = Object.freeze({
 });
 function nqError_(code){throw new Error(code);}
 function nqProp_(name){const v=PropertiesService.getScriptProperties().getProperty(name);if(!v)nqError_('CONFIG_REQUIRED');return v;}
-function nqBook_(){return SpreadsheetApp.openById(nqProp_('NQ52_SHEET_ID'));}
+let nqBookHandle_=null;
+function nqBook_(){if(!nqBookHandle_)nqBookHandle_=SpreadsheetApp.openById(nqProp_('NQ52_SHEET_ID'));return nqBookHandle_;}
 function setupNQ52(){
   const book=nqBook_();
   Object.keys(NQ.TABLES).forEach(name=>{
@@ -98,18 +99,25 @@ function nqAuth_(token,allowChange){
   return u;
 }
 function nqLogin_(p){
+  const timing={};const started=Date.now();
   const username=nqText_(p.username,100,true).toLowerCase(),password=nqTextRawPassword_(p.password);
   if(nqProp_('NQ52_AUTH_MODE')!=='LOCAL_PILOT')nqError_('CONFIG_REQUIRED');
   const matches=nqRows_('NQ52_USERS').filter(x=>String(x.username).trim().toLowerCase()===username);
   const u=matches.length===1?matches[0]:null;
   if(!nqActive_(u))nqError_('INVALID_CREDENTIALS');
   const cred=nqPwdRecord_(u.id);
-  if(!nqPwdCheck_(cred,password))nqError_('INVALID_CREDENTIALS');
-  return nqLock_(()=>{const fresh=nqUser_(u.id),current=nqPwdRecord_(u.id);
+  timing.readMs=Date.now()-started;
+  const hashStarted=Date.now(), verified=nqPwdCheck_(cred,password);
+  timing.verifyMs=Date.now()-hashStarted;
+  if(!verified)nqError_('INVALID_CREDENTIALS');
+  const writeStarted=Date.now();
+  const result=nqLock_(()=>{const fresh=nqUser_(u.id),current=nqPwdRecord_(u.id);
     if(!nqActive_(fresh)||!current||String(current.version)!==String(cred.version))nqError_('INVALID_CREDENTIALS');
     const token=nqId_()+nqId_();nqWrite_('NQ52_SESSIONS',{id:nqDigest_(token),userId:fresh.id,expiresAt:Date.now()+NQ.SESSION_MS,revoked:false});
     nqAudit_(fresh.id,'LOGIN',fresh.id,{});return {token,user:nqPublic_(fresh)};
   });
+  timing.sessionAndAuditMs=Date.now()-writeStarted;timing.totalMs=Date.now()-started;
+  console.log(JSON.stringify({stage:'NQ52_LOGIN_TIMING',...timing}));return result;
 }
 function nqTextRawPassword_(v){if(typeof v!=='string'||!v.length||v.length>256)nqError_('INVALID_CREDENTIALS');return v;}
 function nqRevokeAll_(id){nqRows_('NQ52_SESSIONS').filter(s=>String(s.userId)===String(id)&&!nqBool_(s.revoked)).forEach(s=>{s.revoked=true;nqWrite_('NQ52_SESSIONS',s);});}
