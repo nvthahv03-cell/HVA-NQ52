@@ -1,5 +1,5 @@
 /**
- * HVA-NQ52 | 04_NHAN_SU.gs | Personnel directory 0.3
+ * HVA-NQ52 | 04_NHAN_SU.gs | Personnel directory 0.4
  * Ke thua quy tac danh muc to, unitKey, chong trung cua HVA_Personnel.js.
  * Doc ban sao NHAN_SU cua NQ52; KHONG goi API/session EDOS.
  * Chi chay ham quan tri trong Apps Script; khong mo qua Router.
@@ -39,7 +39,8 @@ function nq52PersonnelUnitKey_(v) {
   if(['bgh','ban giam hieu','lanh dao','can bo quan ly'].includes(n))return 'BGH';
   return '';
 }
-function nq52PersonnelGroup_(position,role) {
+// Cot J: vi tri viec lam. Cot Q chi la vai tro phan mem nguon.
+function nq52PersonnelGroup_(position) {
   const classify=function(v){
     v=nq52PersonnelNorm_(v);
     if(['ht','pht','cbql','bgh','hieu truong','pho hieu truong','can bo quan ly'].includes(v))return 'CBQL';
@@ -47,8 +48,7 @@ function nq52PersonnelGroup_(position,role) {
     if(['nv','nhan vien'].includes(v))return 'NV';
     return 'UNKNOWN';
   };
-  const a=classify(position),b=classify(role);
-  return a!=='UNKNOWN'&&b!=='UNKNOWN'&&a!==b?'UNKNOWN':a!=='UNKNOWN'?a:b;
+  return classify(position);
 }
 function nq52ReadPersonnel_() {
   const props=PropertiesService.getScriptProperties();
@@ -83,7 +83,7 @@ function nq52ReadPersonnel_() {
     const row={};Object.keys(cols).forEach(k=>row[k]=String(cols[k][i][0]||'').trim());
     if(!row.name&&!row.username)continue;
     const sourceRow=i+7,username=String(row.username||'').toLowerCase();
-    const group=nq52PersonnelGroup_(row.position,row.role);
+    const group=nq52PersonnelGroup_(row.position);
     const unitKey=nq52PersonnelUnitKey_(row.unit)||(group==='CBQL'&&!row.unit?'BGH':'');
     const unitEntry=NQ52_PERSONNEL_UNITS.find(x=>x[0]===unitKey);
     const unit=unitEntry?unitEntry[1]:unitKey==='BGH'?'Ban Giám hiệu':row.unit;
@@ -92,7 +92,8 @@ function nq52ReadPersonnel_() {
     else if(username)seen.set(username,sourceRow);
     if(group==='UNKNOWN')issues.push({row:sourceRow,code:'GROUP_REVIEW_REQUIRED'});
     if(!unitKey)issues.push({row:sourceRow,code:'UNIT_REVIEW_REQUIRED'});
-    if(nq52PersonnelNorm_(row.status)!=='dang lam viec')issues.push({row:sourceRow,code:'EMPLOYMENT_STATUS_REVIEW'});
+    const employment=nq52EmploymentCode_(row.status);
+    if(employment==='OTHER_REVIEW')issues.push({row:sourceRow,code:'EMPLOYMENT_STATUS_REVIEW'});
     if(!row.contract)issues.push({row:sourceRow,code:'CONTRACT_REVIEW_REQUIRED'});
     people.push({username,name:row.name,group,unitKey,unit,sourceUnit:row.unit,position:row.position,
       sourceRole:row.role,employmentStatus:row.status,contract:row.contract,subject:row.subject||'',
@@ -100,14 +101,26 @@ function nq52ReadPersonnel_() {
   }
   return {people,issues};
 }
+function nq52EmploymentCode_(v){
+  const n=nq52PersonnelNorm_(v);
+  if(n==='dang lam viec')return 'WORKING';
+  if(n==='nghi khong huong luong')return 'UNPAID_LEAVE';
+  return 'OTHER_REVIEW';
+}
 function nq52PersonnelStats_(source) {
   const groups={CBQL:0,GV:0,NV:0,UNKNOWN:0},workingGroups={CBQL:0,GV:0,NV:0,UNKNOWN:0};
-  const roleCounts={TTCM:0,TPCM:0};
+  const roleCounts={TTCM:0,TPCM:0},positionCounts={TTCM:0,TPCM:0};
+  const employmentCounts={WORKING:0,UNPAID_LEAVE:0,OTHER_REVIEW:0}, monthlyEligibilityReview=[];
   const byUnit=NQ52_PERSONNEL_UNITS.map(x=>({unitKey:x[0],unit:x[1],count:0,working:0}));
   const otherGroups={BGH:0,HoiDong:0,GVCN:0,LienTich:0,LienTichMoRong:0};
   source.people.forEach(p=>{
     groups[p.group]++;
-    const active=nq52PersonnelNorm_(p.employmentStatus)==='dang lam viec';
+    const status=nq52EmploymentCode_(p.employmentStatus),active=status==='WORKING';
+    employmentCounts[status]++;
+    if(!active)monthlyEligibilityReview.push({row:p.sourceRow,status,code:'MONTHLY_ELIGIBILITY_REVIEW_REQUIRED'});
+    const pos=nq52PersonnelNorm_(p.position);
+    if(pos==='ttcm'||pos==='to truong chuyen mon')positionCounts.TTCM++;
+    if(pos==='tpcm'||pos==='to pho chuyen mon')positionCounts.TPCM++;
     const r=nq52PersonnelNorm_(p.sourceRole);
     if(r==='ttcm'||r==='to truong chuyen mon')roleCounts.TTCM++;
     if(r==='tpcm'||r==='to pho chuyen mon')roleCounts.TPCM++;
@@ -122,7 +135,7 @@ function nq52PersonnelStats_(source) {
     if(nq52PersonnelMembership_(p.extendedLiaison))otherGroups.LienTichMoRong++;
   });
   return {total:source.people.length,groups,workingGroups,sourceRoleCounts:roleCounts,byUnit,
-    workgroupCandidates:otherGroups,issues:source.issues,productionReady:false};
+    workgroupCandidates:otherGroups,positionCounts,employmentCounts,monthlyEligibilityReview,issues:source.issues,productionReady:false};
 }
 function nq52PersonnelMembership_(v){
   const n=nq52PersonnelNorm_(v);
