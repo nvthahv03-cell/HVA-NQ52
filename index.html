@@ -442,6 +442,15 @@ function taskCard(t,ctx,editable){
   }
 }
 function reportCard(report,showReview=false){const d=report.data||{},card=recordCard('Báo cáo tháng '+report.month);fieldLine(card,'Trạng thái',stateLabels[report.state]||report.state);fieldLine(card,'Ưu điểm',d.self?.strength);fieldLine(card,'Hạn chế',d.self?.weakness);fieldLine(card,'Giải pháp',d.self?.solution);fieldLine(card,'Nhiệm vụ bổ sung',d.additionalWork);fieldLine(card,'Nguồn nhiệm vụ',d.sourceNote);if(showReview&&d.review){fieldLine(card,'Nhận xét rà soát',d.review.comment);fieldLine(card,'Đề xuất xếp loại (chưa kết luận)',classLabels[d.review.proposedClass]||d.review.proposedClass);fieldLine(card,'Lý do',d.review.reason);}return card;}
+function renderPolicyStatus(p){
+ const card=recordCard('Cấu hình quy chế nhà trường');fieldLine(card,'Trạng thái','Chỉ kiểm tra đã khai báo căn cứ; chưa xác minh hoặc phê duyệt.');
+ if(p.invalid)fieldLine(card,'Cấu hình','Sai định dạng, liên hệ quản trị.');else (p.checks||[]).forEach(x=>fieldLine(card,x.label,x.provided?'Đã khai báo căn cứ':'Chưa khai báo'));
+ fieldLine(card,'Nhóm tương đồng theo Công văn 1757','CBQL, giáo viên, nhân viên; kiểm tra chức vụ và phạm vi thực tế.');
+ fieldLine(card,'Hạn mức HTXSNV thông thường','Không vượt 20% số HTTNV toàn đơn vị và từng nhóm tương đồng; nhóm quản lý dưới 5 người có điều kiện riêng. Không tự áp dụng ngoại lệ.');
+ fieldLine(card,'Hạn báo cáo theo Công văn 1757','Hằng tháng trước ngày 02 tháng liền kề; hồ sơ đề xuất xếp loại người đứng đầu hằng quý trước ngày 20 tháng cuối quý.');
+ fieldLine(card,'Vận hành chính thức','Đang khóa. Cần quy chế được ban hành, kiểm chứng và nghiệm thu.');
+}
+
 function renderPilotReview(info,rows,meetings,ctx,own){
  const items=info.items.filter(x=>x.own===own),names={NOT_REQUESTED:'Chưa gửi rà soát thử',REQUESTED:'Chờ rà soát thử',RETURNED:'Cần bổ sung',REVIEWED:'Đã rà soát thử',COLLECTIVE_NOTED:'Đã ghi nhận dự thảo ý kiến tập thể',DECISION_DRAFT:'Dự thảo kết quả thử',STALE:'Dữ liệu đã thay đổi – cần gửi lại'};
  if(!items.length)workspaceNote('Chưa có hồ sơ trong luồng rà soát thử nghiệm.');
@@ -470,7 +479,7 @@ async function loadModule(message=''){
       if(id==='02')items.forEach(t=>taskCard(t,ctx,true));else{const people=await read('listPeople');if(!current())return;assignmentWorkspace($('workspaceBody'),people,items,u,month,ctx,current,token);}
     }else if(['03','04','05','07'].includes(id)){
       const rows=await read('listReports');if(!current())return;
-      if(id==='05'){const items=rows.filter(x=>String(x.userId)!==String(u.id)&&['SUBMITTED','REVIEWED'].includes(x.state));items.forEach(r=>reportCard(r,true));if(leadershipReady){const p=await read('pilotReviewInfo');if(!current())return;if(p.enabled){const meetings=u.roles.includes('BGH')?await read('listMeetings'):[];if(!current())return;renderPilotReview(p,rows,meetings,ctx,false);}else workspaceNote('Chưa bật quy trình rà soát thử nghiệm.');}else workspaceNote('Chưa cập nhật máy chủ hỗ trợ rà soát thử nghiệm.');workspaceNote('Chưa mở thao tác duyệt và kết luận chính thức.');}
+      if(id==='05'){const items=rows.filter(x=>String(x.userId)!==String(u.id)&&['SUBMITTED','REVIEWED'].includes(x.state));items.forEach(r=>reportCard(r,true));if(leadershipReady){const p=await read('pilotReviewInfo');if(!current())return;if(p.policy)renderPolicyStatus(p.policy);if(p.enabled){const meetings=u.roles.includes('BGH')?await read('listMeetings'):[];if(!current())return;renderPilotReview(p,rows,meetings,ctx,false);}else workspaceNote('Chưa bật quy trình rà soát thử nghiệm.');}else workspaceNote('Chưa cập nhật máy chủ hỗ trợ rà soát thử nghiệm.');workspaceNote('Chưa mở thao tác duyệt và kết luận chính thức.');}
       else {
         const report=ownRecords(rows,u)[0],d=report?.data||{};
         if(id==='07'){if(report)reportCard(report,true);if(leadershipReady&&report){const p=await read('pilotReviewInfo');if(!current())return;if(p.enabled)renderPilotReview(p,rows,[],ctx,true);}workspaceNote('Chưa có chức năng kết luận xếp loại chính thức; đề xuất rà soát không phải kết quả cuối cùng.');}

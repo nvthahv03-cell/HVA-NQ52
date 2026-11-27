@@ -58,6 +58,20 @@ function nqPilotReview_(u,p){
 }
 function nqPilotReviewInfo_(u,p){
  const enabled=PropertiesService.getScriptProperties().getProperty('NQ52_REVIEW_REHEARSAL')==='ON',month=nqMonth_(p.month);
- if(!enabled)return {enabled:false,items:[]};const items=nqRows_('NQ52_REPORTS').filter(r=>String(r.month)===month&&r.state==='DRAFT'&&nqCanRead_(u,r)).map(r=>{const d=nqJSON_(r.data),pr=d.pilotReview,t=nqUser_(r.userId),own=nqOwned_(u,r);if(!t||!nqActive_(t)||String(t.group)==='CBQL'||(!own&&!pr))return null;const fresh=!!pr&&pr.fingerprint===nqReviewFingerprint_(r,d);return {id:String(r.id),name:String(t.name),unit:String(t.unit),own,state:pr?(fresh?pr.state:'STALE'):'NOT_REQUESTED',canReview:!own&&nqCanReview_(u,r),canCollective:!own&&nqHas_(u,'BGH')&&nqCanReview_(u,r),canDecide:!own&&nqCanDecide_(u,r),review:pr?.review||null,collective:pr?.collective||null,decision:pr?.decision||null};}).filter(Boolean);
- return {enabled:true,items};
+ const policy=nqHas_(u,'BGH')?nqSchoolPolicyStatus_():null;
+ if(!enabled)return {enabled:false,items:[],policy};const items=nqRows_('NQ52_REPORTS').filter(r=>String(r.month)===month&&r.state==='DRAFT'&&nqCanRead_(u,r)).map(r=>{const d=nqJSON_(r.data),pr=d.pilotReview,t=nqUser_(r.userId),own=nqOwned_(u,r);if(!t||!nqActive_(t)||String(t.group)==='CBQL'||(!own&&!pr))return null;const fresh=!!pr&&pr.fingerprint===nqReviewFingerprint_(r,d);return {id:String(r.id),name:String(t.name),unit:String(t.unit),own,state:pr?(fresh?pr.state:'STALE'):'NOT_REQUESTED',canReview:!own&&nqCanReview_(u,r),canCollective:!own&&nqHas_(u,'BGH')&&nqCanReview_(u,r),canDecide:!own&&nqCanDecide_(u,r),review:pr?.review||null,collective:pr?.collective||null,decision:pr?.decision||null};}).filter(Boolean);
+ return {enabled:true,items,policy};
+}
+
+/** Status of private school configuration; presence is not verification/approval. */
+function nqSchoolPolicyStatus_(){
+ const raw=PropertiesService.getScriptProperties().getProperty('NQ52_SCHOOL_POLICY')||'{}';let p;try{p=JSON.parse(raw);}catch(_){return {invalid:true,checks:[]};}
+ if(!p||typeof p!=='object'||Array.isArray(p))return {invalid:true,checks:[]};
+ const fields=[['regulationReference','Quy chế nhà trường và số văn bản'],['effectiveDate','Ngày hiệu lực'],['productCatalogueReference','Danh mục công việc, sản phẩm và quy đổi'],['eligibilityReference','Danh sách đối tượng, chức vụ và ngoại lệ'],['authorityReference','Thẩm quyền quản lý, xét duyệt và quyết định'],['assessmentCalendarReference','Lịch thực hiện, biên bản và hạn báo cáo'],['similarGroupsReference','Danh sách nhóm nhiệm vụ tương đồng']];
+ const checks=fields.map(([key,label])=>({key,label,provided:typeof p[key]==='string'&&!!p[key].trim()&&(key!=='effectiveDate'||/^\d{4}-\d{2}-\d{2}$/.test(p[key]))}));
+ return {checks,invalid:false,verified:false,officialEnabled:false};
+}
+function nqQuotaReference_(excellent,good){
+ if(!Number.isInteger(excellent)||!Number.isInteger(good)||excellent<0||good<0)nqError_('INVALID_INPUT');
+ return {excellent,good,ordinaryCap:Math.floor(good/5),withinOrdinaryCap:excellent*5<=good,requiresSeparateManagerExceptionCheck:true,official:false};
 }
