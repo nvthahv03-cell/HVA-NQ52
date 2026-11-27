@@ -58,7 +58,7 @@ function nqReportDraft_(u,p){
   if(r)nqState_(r,['DRAFT']);
   const data=r?nqJSON_(r.data):{};
   // Optional versioned M03 draft; separate from all reviewed or official scores.
-  if(Object.prototype.hasOwnProperty.call(p,'assessmentDraft'))data.assessmentDraft=nqAssessmentDraft_(u,p.assessmentDraft);
+  if(Object.prototype.hasOwnProperty.call(p,'assessmentDraft')){if(typeof nqFormProfile_==='function'&&nqFormProfile_(u).form!=='M03')nqError_('FORBIDDEN');data.assessmentDraft=nqAssessmentDraft_(u,p.assessmentDraft);}
   data.self={strength:nqText_(p.strength,5000,true),weakness:nqText_(p.weakness,5000,true),solution:nqText_(p.solution,5000,true),proposedClass:nqClass_(p.proposedClass,false),updatedAt:nqNow_()};
   data.additionalWork=nqText_(p.additionalWork,10000,false);
   data.sourceNote=nqText_(p.sourceNote,3000,false);

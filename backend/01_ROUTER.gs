@@ -6,7 +6,7 @@ function nqOut_(ok,data,code){
   return ContentService.createTextOutput(JSON.stringify(ok?{ok:true,data}:{ok:false,code})).setMimeType(ContentService.MimeType.JSON);
 }
 function doGet(){
-  return nqOut_(true,{service:'HVA-NQ52',version:'0.2.0',stage:'DEVELOPMENT',assessmentDraftVersion:typeof NQ52_QD32_DRAFT_VERSION==='undefined'?null:NQ52_QD32_DRAFT_VERSION,monthlyDraftVersion:typeof NQ52_MONTHLY_DRAFT_VERSION==='undefined'?null:NQ52_MONTHLY_DRAFT_VERSION,authMode:PropertiesService.getScriptProperties().getProperty('NQ52_AUTH_MODE')==='LOCAL_PILOT'?'LOCAL_PILOT':'LOCKED'});
+  return nqOut_(true,{service:'HVA-NQ52',version:'0.2.0',stage:'DEVELOPMENT',assessmentDraftVersion:typeof NQ52_QD32_DRAFT_VERSION==='undefined'?null:NQ52_QD32_DRAFT_VERSION,monthlyDraftVersion:typeof NQ52_MONTHLY_DRAFT_VERSION==='undefined'?null:NQ52_MONTHLY_DRAFT_VERSION,leadershipVersion:typeof NQ52_LEADERSHIP_VERSION==='undefined'?null:NQ52_LEADERSHIP_VERSION,authMode:PropertiesService.getScriptProperties().getProperty('NQ52_AUTH_MODE')==='LOCAL_PILOT'?'LOCAL_PILOT':'LOCKED'});
 }
 function nqThrottleLogin_(p){
   const name=typeof p.username==='string'?p.username.trim().toLowerCase().slice(0,100):'';
@@ -31,6 +31,10 @@ function doPost(e){
       const u=nqAuth_(p.token,false);
       switch(action){
         case 'me':return nqPublic_(u);
+        case 'assessmentProfile':if(typeof nqFormProfile_!=='function')nqError_('CONFIG_REQUIRED');return nqFormProfile_(u);
+        case 'saveLeadershipDraft':if(typeof nqLeadershipDraft_!=='function')nqError_('CONFIG_REQUIRED');return nqLeadershipDraft_(u,p);
+        case 'pilotReviewInfo':if(typeof nqPilotReviewInfo_!=='function')nqError_('CONFIG_REQUIRED');return nqPilotReviewInfo_(u,p);
+        case 'pilotReview':if(typeof nqPilotReview_!=='function')nqError_('CONFIG_REQUIRED');return nqPilotReview_(u,p);
         case 'listPeople':return nqListPeople_(u);
         case 'listTasks':return nqListRecords_(u,p,'NQ52_TASKS');
         case 'assignTask':return nqAssign_(u,p);

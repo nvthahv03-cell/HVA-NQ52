@@ -256,7 +256,7 @@ const modules=[
 ];
 const $=id=>document.getElementById(id);let gate='all';
 const NQ52_API_URL='https://script.google.com/macros/s/AKfycbxETcgVnmwH2bqENL1iMr8482-BlTsKP1x0FedDscDHfR6FR5-9bFTsPaJrEiaN3yBX/exec';
-let pilotReady=false, session=null, busy=false, assessmentDraftReady=false, healthChecking=false, monthlyDraftReady=false;
+let pilotReady=false, session=null, busy=false, assessmentDraftReady=false, healthChecking=false, monthlyDraftReady=false, leadershipReady=false;
 function syncFullscreen(){
   const active=!!(document.fullscreenElement||document.webkitFullscreenElement);
   document.querySelectorAll('[data-fullscreen]').forEach(b=>{
@@ -292,7 +292,7 @@ syncFullscreen();
 function setBackendStatus(message){$('backendStatus').textContent=message;$('backendPreviewStatus').textContent=message;}
 async function checkBackend(){
   if(healthChecking)return;
-  healthChecking=true;pilotReady=false;assessmentDraftReady=false;monthlyDraftReady=false;$('retryBackend').hidden=true;setLoginControls();
+  healthChecking=true;pilotReady=false;assessmentDraftReady=false;monthlyDraftReady=false;leadershipReady=false;$('retryBackend').hidden=true;setLoginControls();
   setBackendStatus('Đang kiểm tra kết nối hệ thống…');$('loginStatus').textContent='Có thể nhập tài khoản và mật khẩu; chỉ gửi khi kết nối được xác nhận.';
   const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),30000);
   try {
@@ -302,7 +302,7 @@ async function checkBackend(){
     if(result.ok!==true||result.data?.service!=='HVA-NQ52')throw new Error('SERVICE_MISMATCH');
     setBackendStatus('Đã kết nối hệ thống HVA–NQ52');
     pilotReady=result.data.authMode==='LOCAL_PILOT'&&result.data.version==='0.2.0';
-    assessmentDraftReady=result.data.assessmentDraftVersion==="QD32-M03-2026-04-23-DRAFT1";monthlyDraftReady=result.data.monthlyDraftVersion==="MONTHLY-DRAFT-2";
+    assessmentDraftReady=result.data.assessmentDraftVersion==="QD32-M03-2026-04-23-DRAFT1";monthlyDraftReady=result.data.monthlyDraftVersion==="MONTHLY-DRAFT-2";leadershipReady=result.data.leadershipVersion==="LEADERSHIP-DRAFT-1";
     $('loginStatus').textContent=pilotReady?'Có thể đăng nhập bằng tài khoản đã được cấp.':'Hệ thống chưa mở xác thực thử nghiệm. Liên hệ quản trị.';
   }catch(_){setBackendStatus('Chưa kết nối được hệ thống.');$('loginStatus').textContent='Chưa gửi thông tin đăng nhập. Bấm Thử kết nối lại; nếu vẫn lỗi, liên hệ quản trị.';}
   finally{clearTimeout(timeout);healthChecking=false;$('retryBackend').hidden=pilotReady;setLoginControls();}
@@ -442,6 +442,18 @@ function taskCard(t,ctx,editable){
   }
 }
 function reportCard(report,showReview=false){const d=report.data||{},card=recordCard('Báo cáo tháng '+report.month);fieldLine(card,'Trạng thái',stateLabels[report.state]||report.state);fieldLine(card,'Ưu điểm',d.self?.strength);fieldLine(card,'Hạn chế',d.self?.weakness);fieldLine(card,'Giải pháp',d.self?.solution);fieldLine(card,'Nhiệm vụ bổ sung',d.additionalWork);fieldLine(card,'Nguồn nhiệm vụ',d.sourceNote);if(showReview&&d.review){fieldLine(card,'Nhận xét rà soát',d.review.comment);fieldLine(card,'Đề xuất xếp loại (chưa kết luận)',classLabels[d.review.proposedClass]||d.review.proposedClass);fieldLine(card,'Lý do',d.review.reason);}return card;}
+function renderPilotReview(info,rows,meetings,ctx,own){
+ const items=info.items.filter(x=>x.own===own),names={NOT_REQUESTED:'Chưa gửi rà soát thử',REQUESTED:'Chờ rà soát thử',RETURNED:'Cần bổ sung',REVIEWED:'Đã rà soát thử',COLLECTIVE_NOTED:'Đã ghi nhận dự thảo ý kiến tập thể',DECISION_DRAFT:'Dự thảo kết quả thử',STALE:'Dữ liệu đã thay đổi – cần gửi lại'};
+ if(!items.length)workspaceNote('Chưa có hồ sơ trong luồng rà soát thử nghiệm.');
+ items.forEach(x=>{const card=recordCard(x.name+' · '+x.unit);fieldLine(card,'Trạng thái thử nghiệm',names[x.state]||x.state);for(const [label,v] of [['Nhận xét rà soát',x.review],['Ý kiến tập thể (dự thảo)',x.collective],['Dự thảo kết quả',x.decision]])if(v){fieldLine(card,label,v.comment);fieldLine(card,'Mức đề xuất',classLabels[v.proposedClass]||v.proposedClass);if(v.reference)fieldLine(card,'Tham chiếu biên bản',v.reference);}
+ if(own){if(['NOT_REQUESTED','RETURNED','STALE'].includes(x.state))actionButton(card,'Gửi rà soát thử nghiệm',async()=>{if(!confirm('Chỉ gửi bản thử nghiệm, không gửi chính thức?'))return;await ctx.write('pilotReview',{id:x.id,step:'REQUEST'},'Đã ghi nhận yêu cầu rà soát thử.');});return;}
+ const d=rows.find(r=>String(r.id)===x.id)?.data||{};fieldLine(card,'Cá nhân tự đề xuất',classLabels[d.self?.proposedClass]||d.self?.proposedClass);fieldLine(card,'Điểm A tự khai',d.leadershipDraft?.selfA??d.assessmentDraft?.selfA);fieldLine(card,'Ưu điểm',d.self?.strength);fieldLine(card,'Hạn chế',d.self?.weakness);fieldLine(card,'Biện pháp',d.self?.solution);const tasks=el('details');tasks.append(el('summary','Xem báo cáo nhiệm vụ ('+(d.monthlyDraft?.items?.length||0)+')'));(d.monthlyDraft?.items||[]).forEach(t=>{const box=el('div','','workspace-record');fieldLine(box,'Nhiệm vụ',t.title);fieldLine(box,'Kết quả',t.result);fieldLine(box,'Minh chứng', [t.evidenceUrl,t.evidenceNote].filter(Boolean).join(' · '));fieldLine(box,'Chất lượng tự khai',t.selfQuality);tasks.append(box);});card.append(tasks);
+ let step=x.state==='REQUESTED'&&x.canReview?'REVIEW':x.state==='REVIEWED'&&x.canCollective?'COLLECTIVE':x.state==='COLLECTIVE_NOTED'&&x.canDecide?'DECISION_DRAFT':null;if(!step)return;
+ const f=el('div','','workspace-form');card.append(f);const c=formField(f,'Nhận xét và căn cứ','comment','',null,4000),cl=formField(f,'Mức đề xuất thử','class','',[['','Chọn mức'],...Object.entries(classLabels)],25);let m,ref;if(step==='COLLECTIVE'){if(!meetings.length){fieldLine(card,'Yêu cầu','Chưa có hồ sơ cuộc họp trong tháng; chưa ghi ý kiến tập thể.');return;}m=formField(f,'Hồ sơ cuộc họp','meeting','',[['','Chọn cuộc họp'],...meetings.map(r=>[String(r.id),r.data?.title||'Cuộc họp'])]);ref=formField(f,'Số/ký hiệu hoặc căn cứ biên bản thực tế','reference','',null,500);}
+ const send=async(s)=>{if(!c.value.trim()||s!=='RETURN'&&!cl.value||s==='COLLECTIVE'&&(!m.value||!ref.value.trim()))throw Error('INVALID_INPUT');await ctx.write('pilotReview',{id:x.id,step:s,comment:c.value,proposedClass:cl.value,meetingId:m?.value,reference:ref?.value},'Đã lưu thao tác rà soát thử nghiệm.');};actionButton(f,step==='REVIEW'?'Lưu nhận xét rà soát thử':step==='COLLECTIVE'?'Ghi nhận dự thảo ý kiến tập thể':'Lưu dự thảo kết quả (không quyết định chính thức)',()=>send(step));if(step==='REVIEW')actionButton(f,'Yêu cầu bổ sung',()=>send('RETURN'));
+ });
+}
+
 async function loadModule(message=''){
   const request=++moduleRequest,id=selectedModule,m=modules.find(x=>x[0]===id),u=session?.user,token=session?.token,month=$('month').value;
   $('workspaceCode').textContent='';$('workspaceCode').hidden=true;$('workspaceTitle').textContent=m?m[1]:'Không gian nghiệp vụ';$('workspaceDesc').textContent=m?m[2]:'';$('workspaceBody').replaceChildren();$('workspaceStatus').textContent='';$('refreshModule').hidden=!m||!token;
@@ -458,16 +470,16 @@ async function loadModule(message=''){
       if(id==='02')items.forEach(t=>taskCard(t,ctx,true));else{const people=await read('listPeople');if(!current())return;assignmentWorkspace($('workspaceBody'),people,items,u,month,ctx,current,token);}
     }else if(['03','04','05','07'].includes(id)){
       const rows=await read('listReports');if(!current())return;
-      if(id==='05'){const items=rows.filter(x=>String(x.userId)!==String(u.id)&&['SUBMITTED','REVIEWED'].includes(x.state));if(!items.length)workspaceNote('Chưa có báo cáo gửi rà soát trong phạm vi quyền.');items.forEach(r=>reportCard(r,true));workspaceNote('Chưa mở thao tác duyệt và kết luận chính thức.');}
+      if(id==='05'){const items=rows.filter(x=>String(x.userId)!==String(u.id)&&['SUBMITTED','REVIEWED'].includes(x.state));items.forEach(r=>reportCard(r,true));if(leadershipReady){const p=await read('pilotReviewInfo');if(!current())return;if(p.enabled){const meetings=u.roles.includes('BGH')?await read('listMeetings'):[];if(!current())return;renderPilotReview(p,rows,meetings,ctx,false);}else workspaceNote('Chưa bật quy trình rà soát thử nghiệm.');}else workspaceNote('Chưa cập nhật máy chủ hỗ trợ rà soát thử nghiệm.');workspaceNote('Chưa mở thao tác duyệt và kết luận chính thức.');}
       else {
         const report=ownRecords(rows,u)[0],d=report?.data||{};
-        if(id==='07'){if(report)reportCard(report,true);workspaceNote('Chưa có chức năng kết luận xếp loại chính thức; đề xuất rà soát không phải kết quả cuối cùng.');}
+        if(id==='07'){if(report)reportCard(report,true);if(leadershipReady&&report){const p=await read('pilotReviewInfo');if(!current())return;if(p.enabled)renderPilotReview(p,rows,[],ctx,true);}workspaceNote('Chưa có chức năng kết luận xếp loại chính thức; đề xuất rà soát không phải kết quả cuối cùng.');}
         else if(id==='03'){
           const tasks=ownRecords(await read('listTasks'),u);if(!current())return;
           const module=await import('./assets/tu-bao-cao.js?v=4');if(!current())return;
           await module.openMonthlyReport($('workspaceBody'),{user:u,month,report,tasks,ready:monthlyDraftReady,write:ctx.write,current,navigate:(id)=>{selectedModule=id;render();},errorText:workError});
         }else {
-          const tasks=ownRecords(await read('listTasks'),u);if(!current())return;const helper=await import('./assets/tu-bao-cao.js?v=4');if(!current())return;originalEvaluationWorkspace($('workspaceBody'),u,month,report,tasks,ctx,helper.summarizeMonthlyDraft,helper.reviewMonthlyDraft,helper.reviewProposedClass);
+          const tasks=ownRecords(await read('listTasks'),u);if(!current())return;const profile=leadershipReady?await read('assessmentProfile'):{form:u.group==='CBQL'?'M5A':'M03'};if(!current())return;if(['M02','M5A'].includes(profile.form)){const m=await import('./assets/tu-danh-gia-quan-ly.js?v=1');if(!current())return;m.openLeadershipDraft($('workspaceBody'),{user:u,month,report,tasks,profile,ready:leadershipReady,write:ctx.write,errorText:workError});if(current())$('workspaceStatus').textContent=message||'Đã tải biểu mẫu quản lý.';return;}if(profile.form!=='M03'){workspaceNote('Chưa xác định biểu mẫu theo chức vụ pháp lý. Liên hệ quản trị.');return;}const helper=await import('./assets/tu-bao-cao.js?v=4');if(!current())return;originalEvaluationWorkspace($('workspaceBody'),u,month,report,tasks,ctx,helper.summarizeMonthlyDraft,helper.reviewMonthlyDraft,helper.reviewProposedClass);
         }
       }
     }else if(id==='06'){
